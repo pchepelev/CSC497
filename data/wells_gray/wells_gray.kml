@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+<Document id="root_doc">
+<Schema name="bc1" id="bc1">
+	<SimpleField name="SHAPE_Leng" type="float"></SimpleField>
+	<SimpleField name="SHAPE_Area" type="float"></SimpleField>
+</Schema>
+<Folder><name>bc1</name>
+  <Placemark>
+	<Style><LineStyle><color>ff0000ff</color></LineStyle><PolyStyle><fill>0</fill></PolyStyle></Style>
+	<ExtendedData><SchemaData schemaUrl="#bc1">
+		<SimpleData name="SHAPE_Leng">246327.57600000000</SimpleData>
+		<SimpleData name="SHAPE_Area">3786969939.86999988556</SimpleData>
+	</SchemaData></ExtendedData>
+      <Polygon><altitudeMode>relativeToGround</altitudeMode><outerBoundaryIs><LinearRing><altitudeMode>relativeToGround</altitudeMode><coordinates>-120.512082946804838,52.380105446138039 -120.541559666485369,51.847747378140468 -121.46877467042961,51.86347557928115 -121.450401214663245,52.396136251331491 -120.512082946804838,52.380105446138039</coordinates></LinearRing></outerBoundaryIs></Polygon>
+  </Placemark>
+</Folder>
+</Document></kml>
