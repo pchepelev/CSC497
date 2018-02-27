@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20180226</CreaDate><CreaTime>19592800</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.6\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\RasterCalculator" Date="20180226" Time="195928">RasterCalculator Con(IsNull("Feature_stud1"),0,1) "D:\my files\Documents\ArcGIS\csc497\bc1rasters\mask.tif"</Process></lineage></DataProperties></Esri></metadata>
