@@ -70,6 +70,9 @@ def ascToGrid(filename):
 		grid = []
 		for line in mask_file:
 			nline = line.strip('\n')
-			a = nline.split(" ")[1:]
+			if (nline.split(" ")[0] == ''):
+				a = nline.split(" ")[1:]
+			else:
+				a = nline.split(" ")
 			grid.append(a)
 	return grid

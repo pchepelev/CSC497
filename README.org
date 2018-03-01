@@ -1,1 +1,13 @@
 #+TITLE: CSC 497 - Spring 2018 - Logging Road Algorithms
+
+to run model, run (for example):
+
+python3 code/run_model.py data/wells_gray/wells_gray.json
+
+output files will be placed in out directory
+
+(from root directory)
+
+Tool developed on python 3.5
+
+Google Earth KML files in data/* directories
