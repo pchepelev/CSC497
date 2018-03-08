@@ -1,12 +1,12 @@
-* TITLE: CSC 497 - Spring 2018 - Logging Road Algorithms
+# CSC 497 - Spring 2018 - Logging Road Algorithms
 
-* How to run (example)
+## How to run (example)
 From root directory:
 
-*Run model
+### Run model
 python3 code/run_model.py data/wells_gray/wells_gray.json
 
-*Verify model
+### Verify model
 python3 code/run_model.py data/wells_gray/wells_gray.json
 
 Output files will be placed in out directory
