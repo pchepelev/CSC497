@@ -1,6 +1,9 @@
 import numpy
 import collections
-import models
+import json
+import sys
+
+import util
 
 def getTotalDistance(distances):
 	sum = 0
@@ -92,7 +95,42 @@ def getNeighbours(cell, grid, mask):
 	return list
 
 
+if __name__ == '__main__':
+	if len(sys.argv) != 3:
+		print('Usage: %s <config file (JSON)> <road grid file (ASC)>'%sys.argv[0])
+		sys.exit()
+
+	file_name = sys.argv[1]
+	print ('Opening: ' + file_name.split('/')[-1])
+
+	#get info from json
+	with open(file_name, 'r') as f:
+		json_dict = json.load(f)
+	name = json_dict.get('area_name')
+	layers = dict(json_dict.get('layers').items())
+	radius = json_dict.get('search_radius')
+
+	grid = util.ascToGrid(layers['mask'])
+	grid = util.removeHeader(grid)
+	grid = util.fixFirstColRow(grid)
+	grid = util.changeToInt(grid)
+	mask_grid = numpy.array(grid)
+
+	grid = util.ascToGrid(sys.argv[2])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	network_grid = numpy.array(grid)
+
+	bfs_grid = minDistForCells(network_grid, mask_grid)
+	util.saveFile(bfs_grid, 'bfs', layers)
+
+	grid = util.ascToGrid(layers['mask'])
+	cellsize = float(grid[4][-1])
 	
+	print(roadsOnMask(network_grid, mask_grid))
+	print(costOfRoadNetwork(network_grid))
+	print(avgDistForArea(bfs_grid,mask_grid))
+	print(allCellsWithinRadius(bfs_grid, mask_grid, radius,cellsize))
 
 
 '''
