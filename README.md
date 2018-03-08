@@ -12,6 +12,6 @@ python3 code/run_model.py data/wells_gray/wells_gray.json
 Output files will be placed in out directory
 
 
-
+## Information
 Tool developed on python 3.5
 Google Earth KML files in data/* directories
