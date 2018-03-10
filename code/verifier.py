@@ -5,6 +5,7 @@ import sys
 
 import util
 
+#returns the total distances of the distance grid
 def getTotalDistance(distances):
 	sum = 0
 	rows,cols = distances.shape
@@ -14,6 +15,7 @@ def getTotalDistance(distances):
 				sum = sum + distances[i][j]
 	return sum
 
+#determines if all cells in the distance grid are within the specified search radius
 def allCellsWithinRadius(dist_grid, mask_grid, radius,cellsize):
 	rows,cols = mask_grid.shape
 	for i in range(rows):
@@ -23,6 +25,7 @@ def allCellsWithinRadius(dist_grid, mask_grid, radius,cellsize):
 					return False
 	return True
 
+#determines if there are any roads outside of the study area
 def roadsOnMask(data, mask):
 	rows,cols = data.shape
 	for i in range(rows):
@@ -32,9 +35,11 @@ def roadsOnMask(data, mask):
 					return True
 	return False
 
+#returns the cost of the road network (currently number of road cells)
 def costOfRoadNetwork(array):
 	return numpy.sum(array)
 
+#returns a grid that shows how far (BFS traversal) each cell is from a road
 def minDistForCells(roads, mask):
 	queue = collections.deque()
 	visited = set()
@@ -52,47 +57,21 @@ def minDistForCells(roads, mask):
 	while(queue):
 		(x,y) = queue.pop()
 		cell = (x,y)
-		for neighbour in getNeighbours(cell, roads, mask):
+		for neighbour in util.getNeighbours(cell, mask):
 			if distance_grid[neighbour]==-1:
 				queue.appendleft(neighbour)
 				distance_grid[neighbour]=distance_grid[cell]+1
 
 	return distance_grid
 
+#averages the distance grid by the number of cells in the mask
+#SHOULD I REMOVE ROAD CELLS FROM THE CALCULATIONS?
 def avgDistForArea(dist_grid, mask_grid):
 	cells_in_area = numpy.sum(mask_grid)
 	total_distance = getTotalDistance(dist_grid)
 	return float(total_distance)/float(cells_in_area)
 
-def getNeighbours(cell, grid, mask):
-	list = []
-	rows,cols = grid.shape
 
-	#North
-	if (cell[0]+1 >= 0 and cell[0]+1 < rows):
-		if (cell[1] >= 0 and cell[1] < cols):
-			if (mask[(cell[0]+1,cell[1])] == 1):
-				list.append((cell[0]+1,cell[1]))
-
-	#East
-	if (cell[0] >= 0 and cell[0] < rows):
-		if (cell[1]+1 >= 0 and cell[1]+1 < cols):
-			if (mask[(cell[0],cell[1]+1)] == 1):
-				list.append((cell[0],cell[1]+1))
-
-	#South
-	if (cell[0]-1 >= 0 and cell[0]-1 < rows):
-		if (cell[1] >= 0 and cell[1] < cols):
-			if (mask[(cell[0]-1,cell[1])] == 1):
-				list.append((cell[0]-1,cell[1]))
-
-	#West
-	if (cell[0] >= 0 and cell[0] < rows):
-		if (cell[1]-1 >= 0 and cell[1]-1 < cols):
-			if (mask[(cell[0],cell[1]-1)] == 1):
-				list.append((cell[0],cell[1]-1))
-			
-	return list
 
 
 if __name__ == '__main__':
@@ -127,10 +106,10 @@ if __name__ == '__main__':
 	grid = util.ascToGrid(layers['mask'])
 	cellsize = float(grid[4][-1])
 	
-	print(roadsOnMask(network_grid, mask_grid))
-	print(costOfRoadNetwork(network_grid))
-	print(avgDistForArea(bfs_grid,mask_grid))
-	print(allCellsWithinRadius(bfs_grid, mask_grid, radius,cellsize))
+	print("are there roads on the mask? "+str(roadsOnMask(network_grid, mask_grid)))
+	print("cost of road network = "+str(costOfRoadNetwork(network_grid)))
+	print("avg traversal distance from road for all cells in mask = "+str(avgDistForArea(bfs_grid,mask_grid)))
+	print("are all cells within the specified search radius from a road? "+str(allCellsWithinRadius(bfs_grid, mask_grid, radius,cellsize)))
 
 
 '''

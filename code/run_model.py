@@ -17,8 +17,9 @@ if __name__ == '__main__':
 		json_dict = json.load(f)
 	name = json_dict.get('area_name')
 	layers = dict(json_dict.get('layers').items())
-	radius = json_dict.get('search_radius')
+	search_radius = json_dict.get('search_radius')
 
 	#get grid file
-	roads = models.gridNetwork(name,layers,1500)
+	roads = models.greedyAlgorithm(name,layers,search_radius)
+	print("model created. saving file...")
 	util.saveFile(roads, 'modeled_road', layers)

@@ -50,7 +50,7 @@ def changeToInt(grid):
 		for j in range(len(grid[0])):
 			grid[i][j] = int(grid[i][j])
 	return grid
-	
+
 #takes an .asc file and returns a python 2D list
 def ascToGrid(filename):
 	with open(filename,'r') as mask_file:
@@ -67,3 +67,35 @@ def ascToGrid(filename):
 #returns a 2D list of 0s with specified dimensions
 def zeros(ncols,nrows):
 	return [[0 for col in range(ncols)] for row in range(nrows)]
+
+#returns a list of points that are neighbours of cell 
+def getNeighbours(cell, mask):
+	list = []
+	rows,cols = mask.shape
+	
+
+	#North
+	if (cell[0]+1 >= 0 and cell[0]+1 < rows):
+		if (cell[1] >= 0 and cell[1] < cols):
+			if (mask[(cell[0]+1,cell[1])] == 1):
+				list.append((cell[0]+1,cell[1]))
+
+	#East
+	if (cell[0] >= 0 and cell[0] < rows):
+		if (cell[1]+1 >= 0 and cell[1]+1 < cols):
+			if (mask[(cell[0],cell[1]+1)] == 1):
+				list.append((cell[0],cell[1]+1))
+
+	#South
+	if (cell[0]-1 >= 0 and cell[0]-1 < rows):
+		if (cell[1] >= 0 and cell[1] < cols):
+			if (mask[(cell[0]-1,cell[1])] == 1):
+				list.append((cell[0]-1,cell[1]))
+
+	#West
+	if (cell[0] >= 0 and cell[0] < rows):
+		if (cell[1]-1 >= 0 and cell[1]-1 < cols):
+			if (mask[(cell[0],cell[1]-1)] == 1):
+				list.append((cell[0],cell[1]-1))
+			
+	return list

@@ -1,9 +1,10 @@
 {
 	"area_name":"wells_gray",
-	"search_radius":500,
+	"search_radius":30,
 	"layers":{
 		"mask":"data/wells_gray/grids/mask.asc",
 		"elevation":"data/wells_gray/grids/raster_elevation.asc",
-		"forest_cover":"data/wells_gray/grids/raster_veg.asc"
+		"forest_cover":"data/wells_gray/grids/raster_veg.asc",
+		"roads":"data/wells_gray/grids/raster_roads.asc"
 	}
 }
