@@ -91,7 +91,7 @@ if __name__ == '__main__':
 
 	grid = util.ascToGrid(layers['mask'])
 	grid = util.removeHeader(grid)
-	grid = util.fixFirstColRow(grid)
+	#grid = util.fixFirstColRow(grid)
 	grid = util.changeToInt(grid)
 	mask_grid = numpy.array(grid)
 

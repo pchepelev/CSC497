@@ -20,6 +20,7 @@ if __name__ == '__main__':
 	search_radius = json_dict.get('search_radius')
 
 	#get grid file
-	roads = models.greedyAlgorithm(name,layers,search_radius)
+	
+	roads = models.greedyAlgorithm(name, layers,search_radius)
 	print("model created. saving file...")
 	util.saveFile(roads, 'modeled_road', layers)

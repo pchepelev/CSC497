@@ -1,0 +1,10 @@
+{
+	"area_name":"mini",
+	"search_radius":4,
+	"layers":{
+		"mask":"data/mini/grids/waterbody.asc",
+		"elevation":"data/mini/grids/elevation.asc",
+		"forest_cover":"data/mini/grids/veg.asc",
+		"roads":"data/mini/grids/roads.asc"
+	}
+}

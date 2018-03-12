@@ -1,8 +1,10 @@
 import numpy
 import collections
+import time
 
 import util
 import verifier
+import sys
 
 #greedy algorithm 
 def greedyAlgorithm(name, data_layers,search_radius):
@@ -13,7 +15,7 @@ def greedyAlgorithm(name, data_layers,search_radius):
 	nrows = (int(grid[1][-1]))
 	cellsize = float(grid[4][-1])	
 	grid = util.removeHeader(grid)
-	grid = util.fixFirstColRow(grid)
+	#grid = util.fixFirstColRow(grid)
 	grid = util.changeToInt(grid)
 	mask = numpy.array(grid)
 	
@@ -34,55 +36,63 @@ def greedyAlgorithm(name, data_layers,search_radius):
 	print("queue neighbours of road cells initial")
 	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
 	cellsInMask = numpy.sum(mask)
-	while (numpy.sum(covered) < cellsInMask):
-		print("whileloop+")
-		best_cell = [-1,set()]
-		for neighbour in road_neighbours:
-			print("	forloop+")
-			num_cells = 0
-			added_cells = set()
-			
-			queue = collections.deque()
-			queue.appendleft((neighbour[0],0))
 
+	coveredCells = numpy.sum(covered)
+	x=0
+	util.saveFile(roads, 'roads', data_layers)
+	util.saveFile(covered, 'covered', data_layers)
+	
+	while (coveredCells < cellsInMask):
+		x+=1
+		print (x, coveredCells, cellsInMask)
+		
+		#set an initial "best neighbour" that will always be overwritten
+		best_cell = (-1,-1)
+		best_num = -1
+		best_set = set()
+		
+		#for each neighbour in the neighbours of road cells
+		for neighbour in road_neighbours:
+			current_set = set()
+			num_cells = 0
+			queue = collections.deque()
+			queue.appendleft((neighbour,0))
+			#run a bfs from the neighbour to at most search radius distance from the neighbour
 			while(queue):
-				#(cell,y) = queue.pop()
-				pop_result = queue.pop()
-				cell = pop_result[0]
-				y = pop_result[1]
-				#print("		bfswhileloop",type(cell),cell)
+				(cell,y) = queue.pop()
 				for nbor in util.getNeighbours(cell, mask):
 					if (y+1 <= search_radius):
 						queue.appendleft((nbor,y+1))
 					if (covered[nbor] == 0):
-						num_cells = num_cells + 1
-						added_cells.add(nbor)
-			
-			if (best_cell[0] < num_cells):
-				best_cell[0] = num_cells
-				best_cell[1] = added_cells
+						num_cells += 1
+						current_set.add(nbor)
+			#if the number of covered cells gained by the current neighbour is greater than
+			#the number of covered cells gained by the best neighbour, replace the
+			#best neighbour with the current neighbour
+			if (num_cells > best_num):
+				best_cell = neighbour
+				best_set = current_set
 		
-		road_neighbours.remove(best_cell[0])
-		road[best_cell[0]]=1
-		road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
+		#set best_cell to be a road
+		roads[best_cell] = 1
 		
-		for i in added_cells:
-			covered[i] = 1
-			
+		#get neighbours of best_cell, add them to the road_neighbours set, remove the best_cell
+		#from the road_neighbours set since it is a road, not a neighbour
+		new_neighbours = util.getNeighbours(best_cell, mask)
+		for nbor in new_neighbours:
+			if (roads[nbor] == 0):
+				road_neighbours.add(nbor)
+		road_neighbours.remove(best_cell)
 		
-		#compute number of new cells that would be covered if that cell were added to that road
-		#choose the best cell to add based on the criteria
-		#remove that cell from neighbour_list
-		#recompute covered cell
-		#recompute neighbours list
-
-	
-	print("saving...")			
-	util.saveFile(covered, 'covered', data_layers)
-	util.saveFile(min_dist, 'min_dist', data_layers)
-	util.saveFile(roads, 'roads', data_layers)
-	util.saveFile(mask, 'mask', data_layers)
-
+		#recompute the covered cells grid
+		for cell in best_set:
+			covered[cell] = 1
+			coveredCells += 1
+		
+		#save some incremental modeled roads to show progress
+		if (x%10==0):
+			util.saveFile(roads, 'roads'+str(x), data_layers)
+			util.saveFile(covered, 'covered'+str(x), data_layers)
 
 	return roads
 
@@ -94,8 +104,8 @@ def computeNeighbours(road_neighbours, nrows, ncols, roads, mask):
 			if (roads[cell] == 1):
 				neighbours_of_cell = util.getNeighbours(cell,mask)
 				for neighbour in neighbours_of_cell:
-					neighbour_tuple = (cell, neighbour)
-					road_neighbours.add(neighbour_tuple)
+					if (roads[neighbour] == 0):
+						road_neighbours.add(neighbour)
 	return road_neighbours
 
 def computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius):
@@ -123,7 +133,7 @@ def gridNetwork(name, data_layers, separation):
 	cell_dist = int(separation/cellsize)
 	
 	grid = util.removeHeader(grid)
-	grid = util.fixFirstColRow(grid)
+	#grid = util.fixFirstColRow(grid)
 	grid = util.changeToInt(grid)
 	mask = numpy.array(grid)
 	
