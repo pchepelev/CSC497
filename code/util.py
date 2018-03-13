@@ -99,3 +99,39 @@ def getNeighbours(cell, mask):
 				list.append((cell[0],cell[1]-1))
 			
 	return list
+
+#returns a list of points that are neighbours of cell 
+def getNeighboursCol(cell, mask):
+	list = []
+	rows,cols = mask.shape
+	
+
+	#North
+	if (cell[0]+1 >= 0 and cell[0]+1 < rows):
+		if (cell[1] >= 0 and cell[1] < cols):
+			if (mask[(cell[0]+1,cell[1])] == 1):
+				list.append((cell[0]+1,cell[1]))
+				list.append((cell[1],cell[0]+1))
+
+	#East
+	if (cell[0] >= 0 and cell[0] < rows):
+		if (cell[1]+1 >= 0 and cell[1]+1 < cols):
+			if (mask[(cell[0],cell[1]+1)] == 1):
+				list.append((cell[0],cell[1]+1))
+				list.append((cell[1]+1,cell[0]))
+
+	#South
+	if (cell[0]-1 >= 0 and cell[0]-1 < rows):
+		if (cell[1] >= 0 and cell[1] < cols):
+			if (mask[(cell[0]-1,cell[1])] == 1):
+				list.append((cell[0]-1,cell[1]))
+				list.append((cell[1],cell[0]-1))
+
+	#West
+	if (cell[0] >= 0 and cell[0] < rows):
+		if (cell[1]-1 >= 0 and cell[1]-1 < cols):
+			if (mask[(cell[0],cell[1]-1)] == 1):
+				list.append((cell[0],cell[1]-1))
+				list.append((cell[1]-1,cell[0]))
+			
+	return list

@@ -5,6 +5,6 @@
 		"mask":"data/mini/grids/waterbody.asc",
 		"elevation":"data/mini/grids/elevation.asc",
 		"forest_cover":"data/mini/grids/veg.asc",
-		"roads":"data/mini/grids/roads.asc"
+		"roads":"data/mini/grids/1cell_roads.asc"
 	}
 }

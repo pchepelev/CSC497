@@ -4,7 +4,101 @@ import time
 
 import util
 import verifier
-import sys
+
+def scragglyAlgorithmNew(name, data_layers,search_radius):
+	print ("Running scragglyAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])	
+	grid = util.removeHeader(grid)
+	#grid = util.fixFirstColRow(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	
+	covered = numpy.zeros((nrows,ncols))
+	print("init covered grid...")
+	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius)
+	covered = covered*mask
+	
+
+	x = 0
+	cell = numpy.unravel_index(numpy.argmin(min_dist + covered*100000 + 100000*(1-mask)),min_dist.shape)
+	while numpy.max(min_dist) > search_radius:
+		x+=1
+		print("min:",min_dist[cell]," cell: ",cell,search_radius)
+		while min_dist[cell] > 0:
+			print("	min_dist[",cell,"]:",min_dist[cell])
+			best_num = 999999
+			neighbours = util.getNeighbours(cell, mask)
+			for neighbour in neighbours:
+				if min_dist[neighbour] < best_num:
+					best_cell = neighbour
+					best_num = min_dist[neighbour]
+			cell = best_cell
+			roads[cell] = 1
+		min_dist = verifier.minDistForCells(roads, mask)
+		cell = numpy.unravel_index(numpy.argmin(min_dist + covered*100000 + 100000*(1-mask)),min_dist.shape)
+		covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius)
+		covered = covered*mask
+		util.saveFile(roads, 'roads'+str(x), data_layers)
+		
+		
+	return roads
+
+#heuristic model #1
+def scragglyAlgorithm(name, data_layers,search_radius):
+	print ("Running scragglyAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])	
+	grid = util.removeHeader(grid)
+	#grid = util.fixFirstColRow(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	x = 0
+	cell = numpy.unravel_index(numpy.argmax(min_dist),min_dist.shape)
+	while numpy.max(min_dist) > search_radius:
+		x+=1
+		print("max:",min_dist[cell]," cell: ",cell,search_radius)
+		while min_dist[cell] > 0:
+			print("	min_dist[",cell,"]:",min_dist[cell])
+			best_num = 999999
+			neighbours = util.getNeighbours(cell, mask)
+			for neighbour in neighbours:
+				if min_dist[neighbour] < best_num:
+					best_cell = neighbour
+					best_num = min_dist[neighbour]
+			cell = best_cell
+			roads[cell] = 1
+		min_dist = verifier.minDistForCells(roads, mask)
+		cell = numpy.unravel_index(numpy.argmax(min_dist),min_dist.shape)
+		util.saveFile(roads, 'roads'+str(x), data_layers)
+		
+		
+	return roads
 
 #greedy algorithm 
 def greedyAlgorithm(name, data_layers,search_radius):

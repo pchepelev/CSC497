@@ -21,7 +21,7 @@ def allCellsWithinRadius(dist_grid, mask_grid, radius,cellsize):
 	for i in range(rows):
 		for j in range(cols):
 			if mask_grid[i][j]==1:
-				if dist_grid[i][j]*cellsize > radius:
+				if dist_grid[i][j] > radius:
 					return False
 	return True
 
