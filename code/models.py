@@ -1,9 +1,27 @@
 import numpy
 import collections
 import time
+import ctypes
 
 import util
 import verifier
+
+lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.so')
+compute_num_coverable_ij = lib.compute_num_coverable
+
+def compute_num_coverable(roads, covered, mask, radius):
+	rows, cols = roads.shape
+	num_coverable = numpy.zeros(roads.shape,dtype=numpy.int32)
+	covered = numpy.array(covered,dtype=numpy.int32)
+	mask = numpy.array(mask,dtype=numpy.int32)
+	for idx in range(roads.size):
+		i = idx//cols
+		j = idx%cols
+		num_coverable[i,j] = compute_num_coverable_ij(ctypes.c_int(rows),ctypes.c_int(cols),ctypes.c_int(i),ctypes.c_int(j),
+													  ctypes.c_int(radius),
+													  ctypes.c_void_p(covered.ctypes.data),
+													  ctypes.c_void_p(mask.ctypes.data))
+	return num_coverable
 
 def scragglyAlgorithmNew(name, data_layers,search_radius):
 	print ("Running scragglyAlgorithm on " + name)
@@ -134,16 +152,14 @@ def greedyAlgorithm(name, data_layers,search_radius):
 	coveredCells = numpy.sum(covered)
 	x=0
 	util.saveFile(roads, 'roads', data_layers)
-	util.saveFile(covered, 'covered', data_layers)
-	
+	print (x, coveredCells, cellsInMask)
 	while (coveredCells < cellsInMask):
 		x+=1
-		print (x, coveredCells, cellsInMask)
-		
 		#set an initial "best neighbour" that will always be overwritten
 		best_cell = (-1,-1)
 		best_num = -1
 		best_set = set()
+		
 		
 		#for each neighbour in the neighbours of road cells
 		for neighbour in road_neighbours:
@@ -167,6 +183,25 @@ def greedyAlgorithm(name, data_layers,search_radius):
 				best_cell = neighbour
 				best_set = current_set
 		
+		'''
+		benefit = compute_num_coverable(roads,covered,mask,search_radius)
+		for neighbour in road_neighbours:
+			if benefit[neighbour] > best_num:
+				best_cell = neighbour
+				best_num = benefit[neighbour]
+
+
+		queue = collections.deque()
+		queue.appendleft((best_cell,0))
+		while(queue):
+			(cell,y) = queue.pop()
+			for nbor in util.getNeighbours(cell, mask):
+				if (y+1 <= search_radius):
+					queue.appendleft((nbor,y+1))
+				if (covered[nbor] == 0):
+					best_set.add(nbor)
+		'''
+		
 		#set best_cell to be a road
 		roads[best_cell] = 1
 		
@@ -183,11 +218,15 @@ def greedyAlgorithm(name, data_layers,search_radius):
 			covered[cell] = 1
 			coveredCells += 1
 		
-		#save some incremental modeled roads to show progress
+		#save some intermediate modeled roads to show progress
+		'''
 		if (x%10==0):
-			util.saveFile(roads, 'roads'+str(x), data_layers)
-			util.saveFile(covered, 'covered'+str(x), data_layers)
+		'''
+		
+		print(covered)
+		print (x, coveredCells, cellsInMask)
 
+	util.saveFile(verifier.minDistForCells(roads, mask), 'minDistForCells'+str(x), data_layers)
 	return roads
 
 
