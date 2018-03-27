@@ -21,6 +21,6 @@ if __name__ == '__main__':
 
 	#get grid file
 	
-	roads = models.greedyAlgorithm(name, layers,search_radius)
+	roads = models.greedyAlg2TieBreak(name, layers,search_radius)
 	print("model created. saving file...")
 	util.saveFile(roads, 'modeled_road', layers)

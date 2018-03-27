@@ -119,6 +119,130 @@ def scragglyAlgorithm(name, data_layers,search_radius):
 	return roads
 
 #greedy algorithm 
+def greedyAlg2TieBreak(name, data_layers,search_radius):
+	print ("Running greedyAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])	
+	grid = util.removeHeader(grid)
+	#grid = util.fixFirstColRow(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	
+	dist_from_mask = verifier.minDistForCells(1-mask,mask)
+	
+	print("mindistforcells...")
+	min_dist_grid = verifier.minDistForCells(roads, mask)
+	
+	covered = numpy.zeros((nrows,ncols))
+	print("init covered grid...")
+	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
+
+	road_neighbours = set()
+	print("queue neighbours of road cells initial")
+	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
+	cellsInMask = numpy.sum(mask)
+
+	coveredCells = numpy.sum(covered)
+	x=0
+	util.saveFile(roads, 'input_roads', data_layers)
+	print (x, coveredCells, cellsInMask)
+	
+	while (coveredCells < cellsInMask):
+		x+=1
+		#set an initial "best neighbour" that will always be overwritten
+		best_cell = (-1,-1)
+		best_num = -1
+		best_set = set()
+		min_dist = 999999
+		
+		benefit = compute_num_coverable(roads,covered,mask,search_radius)
+		
+		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
+		tied_set = set()
+		for neighbour in road_neighbours:
+			if benefit[neighbour] > best_num:
+				best_cell = neighbour
+				best_num = benefit[neighbour]
+				tied_set = {best_cell}
+			elif benefit[neighbour] == best_num:
+				tied_set.add(neighbour)
+		
+		if len(tied_set) > 1:
+			best_num = 99999
+			best_cell = (-1,-1)
+			tied_2 = set()
+			for cell in tied_set:
+				if (min_dist_grid[cell] < best_num):
+					best_cell = cell
+					best_num = min_dist_grid[cell]
+					tied_2 = {cell}
+				elif min_dist_grid[cell] == best_num:
+					tied_2.add(neighbour)
+			
+		if len(tied_2) > 1:
+			best_num = -1
+			best_cell = (-1,-1)
+			for cell in tied_2:
+				if (dist_from_mask[cell] > best_num):
+					best_cell = cell
+					best_num = dist_from_mask[cell]
+
+		queue = collections.deque()
+		queue.appendleft((best_cell,0))
+		while(queue):
+			(cell,y) = queue.pop()
+			for nbor in util.getNeighbours(cell, mask):
+				if (y+1 < search_radius):
+					queue.appendleft((nbor,y+1))
+				if (covered[nbor] == 0):
+					best_set.add(nbor)
+		
+		
+		#set best_cell to be a road
+		roads[best_cell] = 1
+		
+		#get neighbours of best_cell, add them to the road_neighbours set, remove the best_cell
+		#from the road_neighbours set since it is a road, not a neighbour
+		new_neighbours = util.getNeighbours(best_cell, mask)
+		for nbor in new_neighbours:
+			if (roads[nbor] == 0):
+				road_neighbours.add(nbor)
+		road_neighbours.remove(best_cell)
+		
+		#recompute the covered cells grid
+		for cell in best_set:
+			covered[cell] = 1
+			coveredCells += 1
+		
+		#save some intermediate modeled roads to show progress
+		
+		'''
+		if (x%1==0 or x == 1):
+			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
+			util.saveFile(covered, 'intermediate_covered'+str(x), data_layers)
+			util.saveFile(benefit, 'intermediate_benefit'+str(x), data_layers)
+			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
+		'''
+		
+		#print(min_dist_grid)
+		#print (verifier.minDistForCells(1-covered-(1-mask), mask))
+		#print (mask,"\n")
+		print (roads)
+		#print (1-covered-(1-mask))
+		print (x, coveredCells, cellsInMask)
+	
+	return roads
+
+#greedy algorithm 
 def greedyAlgorithm(name, data_layers,search_radius):
 	print ("Running greedyAlgorithm on " + name)
 	
@@ -138,12 +262,12 @@ def greedyAlgorithm(name, data_layers,search_radius):
 	roads = numpy.multiply(mask,roads)
 	
 	print("mindistforcells...")
-	min_dist = verifier.minDistForCells(roads, mask)
+	min_dist_grid = verifier.minDistForCells(roads, mask)
 	
 	covered = numpy.zeros((nrows,ncols))
 	print("init covered grid...")
-	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius)
-	
+	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
+
 	road_neighbours = set()
 	print("queue neighbours of road cells initial")
 	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
@@ -151,56 +275,55 @@ def greedyAlgorithm(name, data_layers,search_radius):
 
 	coveredCells = numpy.sum(covered)
 	x=0
-	util.saveFile(roads, 'roads', data_layers)
+	util.saveFile(roads, 'input_roads', data_layers)
 	print (x, coveredCells, cellsInMask)
+	
 	while (coveredCells < cellsInMask):
 		x+=1
 		#set an initial "best neighbour" that will always be overwritten
 		best_cell = (-1,-1)
 		best_num = -1
 		best_set = set()
+		min_dist = 999999
 		
-		
-		#for each neighbour in the neighbours of road cells
-		for neighbour in road_neighbours:
-			current_set = set()
-			num_cells = 0
-			queue = collections.deque()
-			queue.appendleft((neighbour,0))
-			#run a bfs from the neighbour to at most search radius distance from the neighbour
-			while(queue):
-				(cell,y) = queue.pop()
-				for nbor in util.getNeighbours(cell, mask):
-					if (y+1 <= search_radius):
-						queue.appendleft((nbor,y+1))
-					if (covered[nbor] == 0):
-						num_cells += 1
-						current_set.add(nbor)
-			#if the number of covered cells gained by the current neighbour is greater than
-			#the number of covered cells gained by the best neighbour, replace the
-			#best neighbour with the current neighbour
-			if (num_cells > best_num):
-				best_cell = neighbour
-				best_set = current_set
-		
-		'''
 		benefit = compute_num_coverable(roads,covered,mask,search_radius)
+		
+		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
+		tied_set = set()
 		for neighbour in road_neighbours:
 			if benefit[neighbour] > best_num:
 				best_cell = neighbour
 				best_num = benefit[neighbour]
-
+				tied_set = {best_cell}
+			elif benefit[neighbour] == best_num:
+				tied_set.add(neighbour)
+		
+		if len(tied_set) > 1:
+			best_num = 99999
+			best_cell = (-1,-1)
+			for cell in tied_set:
+				if (min_dist_grid[cell] < best_num):
+					best_cell = cell
+					best_num = min_dist_grid[cell]
 
 		queue = collections.deque()
 		queue.appendleft((best_cell,0))
 		while(queue):
 			(cell,y) = queue.pop()
 			for nbor in util.getNeighbours(cell, mask):
-				if (y+1 <= search_radius):
+				if (y+1 < search_radius):
 					queue.appendleft((nbor,y+1))
 				if (covered[nbor] == 0):
 					best_set.add(nbor)
-		'''
+		
+		
+		for cellz in util.getNeighbours(best_cell,numpy.zeros((nrows,ncols))+1):
+			if mask[cellz] == 0:
+				print ("this cell has a mask neighbour")
+				print("	",tied_set)
+				for i in tied_set:
+					print("	benefit of cell ",i," = ",benefit[i])
+					print("	tiebreak = ",min_dist_grid[i])
 		
 		#set best_cell to be a road
 		roads[best_cell] = 1
@@ -219,14 +342,20 @@ def greedyAlgorithm(name, data_layers,search_radius):
 			coveredCells += 1
 		
 		#save some intermediate modeled roads to show progress
-		'''
-		if (x%10==0):
-		'''
 		
-		print(covered)
+		if (x%1==0 or x == 1):
+			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
+			util.saveFile(covered, 'intermediate_covered'+str(x), data_layers)
+			util.saveFile(benefit, 'intermediate_benefit'+str(x), data_layers)
+			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
+		
+		#print(min_dist_grid)
+		#print (verifier.minDistForCells(1-covered-(1-mask), mask))
+		#print (mask,"\n")
+		#print (roads)
+		#print (1-covered-(1-mask))
 		print (x, coveredCells, cellsInMask)
-
-	util.saveFile(verifier.minDistForCells(roads, mask), 'minDistForCells'+str(x), data_layers)
+	
 	return roads
 
 

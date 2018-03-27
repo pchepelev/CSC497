@@ -61,34 +61,43 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 		//Test each neighbour
 		if (i+1 < rows){
 			if (dist[i+1][j] < 0){
-				GridIndex next_cell = {i+1,j};
-				queue[queue_end] = next_cell;
-				queue_end++;
-				dist[i+1][j] = dist[i][j] + 1;
+				if (mask[i+1][j] == 1) {
+					GridIndex next_cell = {i+1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i+1][j] = dist[i][j] + 1;
+				}
+				
 			}
 		}
 		if (i-1 >= 0){
 			if (dist[i-1][j] < 0){
-				GridIndex next_cell = {i-1,j};
-				queue[queue_end] = next_cell;
-				queue_end++;
-				dist[i-1][j] = dist[i][j] + 1;
+				if (mask[i-1][j] == 1) {
+					GridIndex next_cell = {i-1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i-1][j] = dist[i][j] + 1;
+				}
 			}
 		}
 		if (j+1 < rows){
 			if (dist[i][j+1] < 0){
-				GridIndex next_cell = {i,j+1};
-				queue[queue_end] = next_cell;
-				queue_end++;
-				dist[i][j+1] = dist[i][j] + 1;
+				if (mask[i][j+1] == 1) {
+					GridIndex next_cell = {i,j+1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j+1] = dist[i][j] + 1;
+				}
 			}
 		}
 		if (j-1 >= 0){
 			if (dist[i][j-1] < 0){
-				GridIndex next_cell = {i,j-1};
-				queue[queue_end] = next_cell;
-				queue_end++;
-				dist[i][j-1] = dist[i][j] + 1;
+				if (mask[i][j-1] == 1) {
+					GridIndex next_cell = {i,j-1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j-1] = dist[i][j] + 1;
+				}
 			}
 		}
 		
