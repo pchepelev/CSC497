@@ -158,7 +158,8 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	print (x, coveredCells, cellsInMask)
 	while (coveredCells < cellsInMask):
 		x+=1
-		
+		start = time.time()
+
 		benefit = compute_num_coverable(roads,covered,mask,search_radius)
 		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
 		
@@ -203,7 +204,8 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
 
 		print (roads)
-		print (x, coveredCells, cellsInMask)
+		end = time.time()
+		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 	return roads
 
 #greedy algorithm with 1 tiebreaker
@@ -243,6 +245,7 @@ def greedyAlgorithm1TB(name, data_layers,search_radius, save_period):
 	print (x, coveredCells, cellsInMask)
 	while (coveredCells < cellsInMask):
 		x+=1
+		start = time.time()
 		
 		benefit = compute_num_coverable(roads,covered,mask,search_radius)
 		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
@@ -286,7 +289,8 @@ def greedyAlgorithm1TB(name, data_layers,search_radius, save_period):
 			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
 
 		print (roads)
-		print (x, coveredCells, cellsInMask)
+		end = time.time()
+		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 	return roads
 
 def tied_greater_than(input_set, grid):
