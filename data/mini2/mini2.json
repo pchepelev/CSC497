@@ -1,0 +1,9 @@
+{
+	"area_name":"mini2",
+	"search_radius":4,
+	"layers":{
+		"mask":"data/mini2/grids/mask.asc",
+		"elevation":"data/mini2/grids/elevation.asc",
+		"roads":"data/mini2/grids/1cell_roads.asc"
+	}
+}

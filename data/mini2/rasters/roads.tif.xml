@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20180327</CreaDate><CreaTime>14505900</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.6\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\Reclassify" Date="20180327" Time="145059">Reclassify roads.tif VALUE "0 9999999 1;NODATA 0" "D:\my files\Documents\ArcGIS\csc497\mini2rasters\roads1.tif" DATA</Process></lineage></DataProperties></Esri></metadata>
