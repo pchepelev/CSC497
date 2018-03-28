@@ -2,11 +2,16 @@ import numpy
 import collections
 import time
 import ctypes
+import os
 
 import util
 import verifier
 
-lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.dll')
+if os.name == 'nt':
+	lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.dll')
+if os.name == 'posix':
+	lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.so')
+
 compute_num_coverable_ij = lib.compute_num_coverable
 
 def compute_num_coverable(roads, covered, mask, radius):
