@@ -160,15 +160,26 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		x+=1
 		start = time.time()
 
+		t1 = time.time()
 		benefit = compute_num_coverable(roads,covered,mask,search_radius)
-		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
+		t2 = time.time()
+		print("	generate benefit grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
+		t1 = time.time()
+		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
+		t2 = time.time()
+		print("	generate min_dist grid took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
 		(best_cell,tied_set) = tied_greater_than(road_neighbours,benefit)
 		if len(tied_set) > 1:
 			(best_cell,tied_set) = tied_less_than(tied_set,min_dist_grid)
 		if len(tied_set) > 1:
 			best_cell = tied_less_than(tied_set,dist_from_mask)[0]
+		t2 = time.time()
+		print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
 	
+		t1 = time.time()
 		best_set = set()
 		queue = collections.deque()
 		queue.appendleft((best_cell,0))
@@ -179,7 +190,10 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 					queue.appendleft((nbor,y+1))
 				if (covered[nbor] == 0):
 					best_set.add(nbor)
-				
+		t2 = time.time()
+		print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
 		#set best_cell to be a road
 		roads[best_cell] = 1
 		
@@ -190,11 +204,16 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 			if (roads[nbor] == 0):
 				road_neighbours.add(nbor)
 		road_neighbours.remove(best_cell)
+		t2 = time.time()
+		print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
 		
+		t1 = time.time()
 		#recompute the covered cells grid
 		for cell in best_set:
 			covered[cell] = 1
 			coveredCells += 1
+		t2 = time.time()
+		print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		#save some intermediate modeled roads to show progress	
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
@@ -203,9 +222,9 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 			util.saveFile(benefit, 'intermediate_benefit'+str(x), data_layers)
 			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
 
-		print (roads)
+		#print (roads)
 		end = time.time()
-		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds", "{:.3f}".format(t2-t1), "seconds")
 	return roads
 
 #greedy algorithm with 1 tiebreaker
