@@ -6,7 +6,7 @@ import ctypes
 import util
 import verifier
 
-lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.so')
+lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.dll')
 compute_num_coverable_ij = lib.compute_num_coverable
 
 def compute_num_coverable(roads, covered, mask, radius):
