@@ -14,6 +14,15 @@ if os.name == 'posix':
 
 compute_num_coverable_ij = lib.compute_num_coverable
 
+def compute_benefit_single_cell(roads, covered, mask, radius, i, j):
+	rows, cols = roads.shape
+	covered = numpy.array(covered,dtype=numpy.int32)
+	mask = numpy.array(mask,dtype=numpy.int32)
+	return compute_num_coverable_ij(ctypes.c_int(rows),ctypes.c_int(cols),ctypes.c_int(i),ctypes.c_int(j),
+														  ctypes.c_int(radius),
+														  ctypes.c_void_p(covered.ctypes.data),
+														  ctypes.c_void_p(mask.ctypes.data))
+
 def compute_num_coverable(roads, covered, mask, radius):
 	rows, cols = roads.shape
 	num_coverable = numpy.zeros(roads.shape,dtype=numpy.int32)
@@ -143,19 +152,34 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	roads = numpy.multiply(mask,roads)
 	util.saveFile(roads, 'input_roads', data_layers)
 	
-	print("get minimum distance from roads...")
+	
+	
+	t1 = time.time()
 	min_dist_grid = verifier.minDistForCells(roads, mask)
+	t2 = time.time()
+	print("get minimum distance from roads took ", "{:.3f}".format(t2-t1), "seconds")
 	
-	print("get minimum distance from mask...")
+	t1 = time.time()
 	dist_from_mask = verifier.minDistForCells(1-mask,mask)
+	t2 = time.time()
+	print("get minimum distance from mask took ", "{:.3f}".format(t2-t1), "seconds")
 	
-	print("init covered grid...")
+	t1 = time.time()
 	covered = numpy.zeros((nrows,ncols))
 	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
+	t2 = time.time()
+	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 
-	print("compute Neighbours of roads...")
+	t1 = time.time()
+	benefit = compute_num_coverable(roads,covered,mask,search_radius)
+	t2 = time.time()
+	print("init benefit grid took ", "{:.3f}".format(t2-t1), "seconds")
+	
+	t1 = time.time()
 	road_neighbours = set()
 	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
+	t2 = time.time()
+	print("compute Neighbours of roads took ", "{:.3f}".format(t2-t1), "seconds")
 	
 	x=0
 	coveredCells = numpy.sum(covered)
@@ -164,11 +188,6 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	while (coveredCells < cellsInMask):
 		x+=1
 		start = time.time()
-
-		t1 = time.time()
-		benefit = compute_num_coverable(roads,covered,mask,search_radius)
-		t2 = time.time()
-		print("	generate benefit grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		t1 = time.time()
 		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
@@ -220,6 +239,37 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		t2 = time.time()
 		print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
+		
+		##################################################################################################################
+		##################################################################################################################
+		##################################################################################################################
+		
+		t1 = time.time()
+		
+		#benefit = compute_num_coverable(roads,covered,mask,search_radius)
+		
+		
+		benefit_visited = numpy.zeros((nrows,ncols),dtype=numpy.int32)
+		queue = collections.deque()
+		queue.appendleft((best_cell,0))
+		benefit_visited[best_cell]=1
+		while(queue):
+			(cell,y) = queue.pop()
+			for nbor_ben in util.getNeighbours(cell, mask):
+				if (y+1 < 2*search_radius+1 and benefit_visited[nbor_ben]==0):
+					queue.appendleft((nbor_ben,y+1))
+					benefit[nbor_ben] = compute_benefit_single_cell(roads, covered, mask, search_radius, nbor_ben[0], nbor_ben[1])
+					benefit_visited[nbor_ben]=1
+		
+		t2 = time.time()
+		
+		
+		print ("	recompute the benefit grid ", "{:.3f}".format(t2-t1), "seconds")
+		
+		##################################################################################################################
+		##################################################################################################################
+		##################################################################################################################
+		
 		#save some intermediate modeled roads to show progress	
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
 			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
@@ -229,7 +279,7 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 
 		#print (roads)
 		end = time.time()
-		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds", "{:.3f}".format(t2-t1), "seconds")
+		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 	return roads
 
 #greedy algorithm with 1 tiebreaker

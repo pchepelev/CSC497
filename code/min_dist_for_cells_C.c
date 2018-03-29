@@ -9,22 +9,17 @@ typedef struct{
 
 int compute_num_coverable( int rows, int cols, int start_i, int start_j, int radius, int covered[rows][cols], int mask[rows][cols] ){
 	
-	//int dist[rows][cols];	
-	int** dist;
-	dist = (int**) malloc(rows*sizeof(int*));
-	for (int i = 0; i < rows; i++)
-	   dist[i] = (int*) malloc(cols*sizeof(int));
+	int totalcells = rows*cols;
+	GridIndex queue[rows*cols];
+	int queue_start = 0;
+	int queue_end = 0;
+	
+	int dist[rows][cols];
 	int i,j;
 	for (i = 0; i < rows; i++)
 		for (j = 0; j < cols; j++)
 			dist[i][j] = -1;
-	
-	GridIndex *queue = malloc(rows*cols * sizeof(GridIndex));
-	for (i=0;i<rows*cols;i++) {
-		GridIndex* a = &queue[i];
-		a = malloc(sizeof(GridIndex));
-	}
-
+		
 	/*
 	printf("Covered\n");
 	
@@ -42,28 +37,27 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 	}
 	*/
 	
-	int total_found = 0;
-	int queue_start = 0;
-	int queue_end = 0;
 	GridIndex first_cell = {start_i, start_j};
 	queue[0] = first_cell;
 	queue_end++;
 	dist[start_i][start_j] = 0;
+	
+	int total_found = 0;
+	
 	while(queue_start < queue_end){
-		printf("a\n");
 		GridIndex cell = queue[queue_start];
 		queue_start++;
+		
 		i = cell.i;
 		j = cell.j;
-		printf("b\n");
 		if (!mask[i][j]) //If mask = 0, the cell is invalid
 			continue;
-		printf("c i: %d j: %d, rows: %d cols: %d\n",i,j,rows,cols);
 		if (dist[i][j] > radius)
 			continue;
-		printf("d\n");
+	
 		if (!covered[i][j])
 			total_found++;
+		
 		//Test each neighbour
 		if (i+1 < rows){
 			if (dist[i+1][j] < 0){
@@ -108,7 +102,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 		}
 		
 	}
-	return total_found;
+return total_found;
 	
 	
 }
