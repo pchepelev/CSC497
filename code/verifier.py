@@ -2,8 +2,12 @@ import numpy
 import collections
 import json
 import sys
+import ctypes
+import time
 
 import util
+lib = ctypes.cdll.LoadLibrary('code/bfs.so')
+bfs_full = lib.full_bfs
 
 #returns the total distances of the distance grid
 def getTotalDistance(distances):
@@ -39,20 +43,42 @@ def roadsOnMask(data, mask):
 def costOfRoadNetwork(array):
 	return numpy.sum(array)
 
+def minDistForCellsC(rows,cols):
+	grid = min_dist_for_cells(ctypes.c_int(rows),ctypes.c_int(cols))
+	return grid
+
 #returns a grid that shows how far (BFS traversal) each cell is from a road
 def minDistForCells(roads, mask):
-	queue = collections.deque()
-	visited = set()
-	rows,cols = roads.shape
-	distance_grid = numpy.full((rows,cols),-1)
 	
-	#queue road cells
+	rows,cols = roads.shape
+	dist_grid = numpy.zeros((rows,cols),dtype=numpy.int32)-1
+	roads = numpy.array(roads,dtype=numpy.int32)
+	mask = numpy.array(mask,dtype=numpy.int32)
+	
+	bfs_full(ctypes.c_int(rows),ctypes.c_int(cols),
+			  ctypes.c_void_p(mask.ctypes.data),
+			  ctypes.c_void_p(roads.ctypes.data),
+			  ctypes.c_void_p(dist_grid.ctypes.data))
+	
+	return dist_grid
+	
+	'''
+	a = roads.nonzero()
+	
+	i = a[0]
+	j = a[1]
+	
+	for i,x in enumerate(i):
+		queue.appendleft((int(x),int(j[i])))
+		distance_grid[x][j[i]] = 0
+	
+	
 	for i in range(rows):
 		for j in range(cols):
 			if (roads[i][j] == 1):
 				queue.appendleft((i,j))
 				distance_grid[i][j] = 0
-				
+	
 	#while queue is not empty, pop cell from queue, queue all not visited neighbours
 	while(queue):
 		(x,y) = queue.pop()
@@ -61,8 +87,7 @@ def minDistForCells(roads, mask):
 			if distance_grid[neighbour]==-1:
 				queue.appendleft(neighbour)
 				distance_grid[neighbour]=distance_grid[cell]+1
-
-	return distance_grid
+	'''
 
 #averages the distance grid by the number of cells in the mask
 #SHOULD I REMOVE ROAD CELLS FROM THE CALCULATIONS?
@@ -70,9 +95,6 @@ def avgDistForArea(dist_grid, mask_grid):
 	cells_in_area = numpy.sum(mask_grid)
 	total_distance = getTotalDistance(dist_grid)
 	return float(total_distance)/float(cells_in_area)
-
-
-
 
 if __name__ == '__main__':
 	if len(sys.argv) != 3:

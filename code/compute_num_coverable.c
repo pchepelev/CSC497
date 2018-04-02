@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-//Compile this with: gcc -O3 -o compute_num_coverable.so -fPIC -shared compute_num_coverable.c
+//Compile this with: gcc -O3 -o code/compute_num_coverable.so -fPIC -shared code/compute_num_coverable.c
 
 typedef struct{
 	int i,j;

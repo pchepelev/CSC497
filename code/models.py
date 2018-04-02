@@ -3,6 +3,7 @@ import collections
 import time
 import ctypes
 import os
+import sys
 
 import util
 import verifier
@@ -143,7 +144,7 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	grid = util.removeHeader(grid)
 	#grid = util.fixFirstColRow(grid)
 	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)
+	mask = numpy.array(grid)#,dtype=numpy.uint8
 	
 	grid = util.ascToGrid(data_layers['roads'])
 	grid = util.removeHeader(grid)
@@ -165,11 +166,13 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	print("get minimum distance from mask took ", "{:.3f}".format(t2-t1), "seconds")
 	
 	t1 = time.time()
-	covered = numpy.zeros((nrows,ncols))
+	covered = numpy.zeros((nrows,ncols))#,dtype=numpy.uint8
 	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
 	t2 = time.time()
 	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
-
+	
+	
+	
 	t1 = time.time()
 	benefit = compute_num_coverable(roads,covered,mask,search_radius)
 	t2 = time.time()
@@ -249,7 +252,7 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#benefit = compute_num_coverable(roads,covered,mask,search_radius)
 		
 		
-		benefit_visited = numpy.zeros((nrows,ncols),dtype=numpy.int32)
+		benefit_visited = numpy.zeros((nrows,ncols))#,dtype=numpy.int32
 		queue = collections.deque()
 		queue.appendleft((best_cell,0))
 		benefit_visited[best_cell]=1
@@ -280,6 +283,7 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#print (roads)
 		end = time.time()
 		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		
 	return roads
 
 #greedy algorithm with 1 tiebreaker
@@ -409,7 +413,6 @@ def computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius):
 	'''
 	numpy.array(A<5, dtype=int)
 	'''
-	
 	for i in range(nrows):
 		for j in range(ncols):
 			if (min_dist[i][j] <= search_radius and mask[i][j] == 1):
