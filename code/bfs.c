@@ -7,6 +7,99 @@ typedef struct{
 	int i,j;
 } GridIndex;
 
+int covered_bfs (int rows, int cols, int start_i, int start_j, int radius, int covered[rows][cols], int mask[rows][cols]) {
+	int i,j;
+	int count = 0;
+	
+	int dist[rows][cols];
+	for (i=0;i<rows;i++)
+		for (j=0;j<cols;j++)
+			dist[i][j]=-1;
+	dist[start_i][start_j] = 0;
+	
+	GridIndex queue[rows*cols];
+	GridIndex first_cell = {start_i, start_j};
+	int q_start,q_end = 0;
+	queue[0] = first_cell;
+	q_end++;
+	
+	while (q_start < q_end) {
+		GridIndex cell = queue[q_start];
+		q_start++;
+		
+		i = cell.i;
+		j = cell.j;
+		
+		if (mask[i][j] == 0)
+			continue;
+		if (dist[i][j] >= radius)
+			continue;
+		
+		
+		if (i+1 < rows){
+			if (dist[i+1][j] < 0){
+				if (mask[i+1][j] == 1) {
+					GridIndex next_cell = {i+1,j};
+					queue[q_end] = next_cell;
+					q_end++;
+					dist[i+1][j] = dist[i][j] + 1;
+					if (covered[i+1][j] == 0) {
+						covered[i+1][j] = 1;
+						count++;
+					}
+				}
+			}
+		}
+		
+		if (i-1 >= 0){
+			if (dist[i-1][j] < 0){
+				if (mask[i-1][j] == 1) {
+					GridIndex next_cell = {i-1,j};
+					queue[q_end] = next_cell;
+					q_end++;
+					dist[i-1][j] = dist[i][j] + 1;
+					if (covered[i-1][j] ==0) {
+						covered[i-1][j] = 1;
+						count++;
+					}
+				}
+			}
+		}
+		
+		if (j+1 < cols){
+			if (dist[i][j+1] < 0){
+				if (mask[i][j+1] == 1) {
+					GridIndex next_cell = {i,j+1};
+					queue[q_end] = next_cell;
+					q_end++;
+					dist[i][j+1] = dist[i][j] + 1;
+					if (covered[i][j+1] ==0) {
+						covered[i][j+1] = 1;
+						count++;
+					}
+				}
+			}
+		}
+		
+		if (j-1 >= 0){
+			if (dist[i][j-1] < 0){
+				if (mask[i][j-1] == 1) {
+					GridIndex next_cell = {i,j-1};
+					queue[q_end] = next_cell;
+					q_end++;
+					dist[i][j-1] = dist[i][j] + 1;
+					if (covered[i][j-1] ==0) {
+						covered[i][j-1] = 1;
+						count++;
+					}
+				}
+			}
+		}
+		
+	}
+	
+	return count;
+}
 
 int compute_num_coverable( int rows, int cols, int start_i, int start_j, int radius, int covered[rows][cols], int mask[rows][cols] ){
 	

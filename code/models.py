@@ -12,6 +12,7 @@ lib = ctypes.cdll.LoadLibrary('code/bfs.so')
 
 compute_num_coverable_ij = lib.compute_num_coverable
 limited_bfs = lib.limited_bfs
+covered_bfs = lib.covered_bfs
 
 def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
 	
@@ -220,7 +221,9 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#t2 = time.time()
 		#print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
 	
-		#t1 = time.time()
+	
+		'''
+		t1 = time.time()
 		best_set = set()
 		queue = collections.deque()
 		queue.appendleft((best_cell,0))
@@ -231,8 +234,9 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 					queue.appendleft((nbor,y+1))
 				if (covered[nbor] == 0):
 					best_set.add(nbor)
-		#t2 = time.time()
-		#print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		t2 = time.time()
+		print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		'''
 		
 		#t1 = time.time()
 		#set best_cell to be a road
@@ -248,16 +252,25 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#t2 = time.time()
 		#print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
 		
+		(BCi,BCj)=best_cell
 		#t1 = time.time()
+		'''
 		#recompute the covered cells grid
 		for cell in best_set:
 			covered[cell] = 1
 			coveredCells += 1
+		'''
+		
+		coveredCells += covered_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols), 
+									ctypes.c_int(BCi), ctypes.c_int(BCj), 
+									ctypes.c_int(search_radius), 
+									ctypes.c_void_p(covered.ctypes.data), 
+									ctypes.c_void_p(mask.ctypes.data))
+		
 		#t2 = time.time()
 		#print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		#t1 = time.time()
-		(BCi,BCj)=best_cell
 		covered = numpy.array(covered,dtype=numpy.int32)
 		mask = numpy.array(mask,dtype=numpy.int32)
 		benefit = numpy.array(benefit,dtype=numpy.int32)
