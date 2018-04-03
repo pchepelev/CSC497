@@ -8,12 +8,26 @@ import sys
 import util
 import verifier
 
-if os.name == 'nt':
-	lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.dll')
-if os.name == 'posix':
-	lib = ctypes.cdll.LoadLibrary('code/compute_num_coverable.so')
+lib = ctypes.cdll.LoadLibrary('code/bfs.so')
 
 compute_num_coverable_ij = lib.compute_num_coverable
+limited_bfs = lib.limited_bfs
+
+def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
+	
+	covered = numpy.array(covered,dtype=numpy.int32)
+	mask = numpy.array(mask,dtype=numpy.int32)
+	benefit = numpy.array(benefit,dtype=numpy.int32)
+	
+	limited_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols),
+				ctypes.c_int(BCi), ctypes.c_int(BCj),
+				ctypes.c_int(search_radius),
+				ctypes.c_void_p(covered.ctypes.data),
+				ctypes.c_void_p(mask.ctypes.data),
+				ctypes.c_void_p(benefit.ctypes.data))
+	
+	return benefit
+	
 
 def compute_benefit_single_cell(roads, covered, mask, radius, i, j):
 	rows, cols = roads.shape
@@ -142,9 +156,8 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	nrows = (int(grid[1][-1]))
 	cellsize = float(grid[4][-1])	
 	grid = util.removeHeader(grid)
-	#grid = util.fixFirstColRow(grid)
 	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)#,dtype=numpy.uint8
+	mask = numpy.array(grid)
 	
 	grid = util.ascToGrid(data_layers['roads'])
 	grid = util.removeHeader(grid)
@@ -166,7 +179,7 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	print("get minimum distance from mask took ", "{:.3f}".format(t2-t1), "seconds")
 	
 	t1 = time.time()
-	covered = numpy.zeros((nrows,ncols))#,dtype=numpy.uint8
+	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
 	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
 	t2 = time.time()
 	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
@@ -189,24 +202,25 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	cellsInMask = numpy.sum(mask)
 	print (x, coveredCells, cellsInMask)
 	while (coveredCells < cellsInMask):
+		#time.sleep(1)
 		x+=1
 		start = time.time()
 		
-		t1 = time.time()
+		#t1 = time.time()
 		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
-		t2 = time.time()
-		print("	generate min_dist grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	generate min_dist grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		(best_cell,tied_set) = tied_greater_than(road_neighbours,benefit)
 		if len(tied_set) > 1:
 			(best_cell,tied_set) = tied_less_than(tied_set,min_dist_grid)
 		if len(tied_set) > 1:
 			best_cell = tied_less_than(tied_set,dist_from_mask)[0]
-		t2 = time.time()
-		print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
 	
-		t1 = time.time()
+		#t1 = time.time()
 		best_set = set()
 		queue = collections.deque()
 		queue.appendleft((best_cell,0))
@@ -217,10 +231,10 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 					queue.appendleft((nbor,y+1))
 				if (covered[nbor] == 0):
 					best_set.add(nbor)
-		t2 = time.time()
-		print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		#set best_cell to be a road
 		roads[best_cell] = 1
 		
@@ -231,48 +245,33 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 			if (roads[nbor] == 0):
 				road_neighbours.add(nbor)
 		road_neighbours.remove(best_cell)
-		t2 = time.time()
-		print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		#recompute the covered cells grid
 		for cell in best_set:
 			covered[cell] = 1
 			coveredCells += 1
-		t2 = time.time()
-		print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
+		#t1 = time.time()
+		(BCi,BCj)=best_cell
+		covered = numpy.array(covered,dtype=numpy.int32)
+		mask = numpy.array(mask,dtype=numpy.int32)
+		benefit = numpy.array(benefit,dtype=numpy.int32)
 		
-		##################################################################################################################
-		##################################################################################################################
-		##################################################################################################################
+		limited_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols),
+					ctypes.c_int(BCi), ctypes.c_int(BCj),
+					ctypes.c_int(search_radius),
+					ctypes.c_void_p(covered.ctypes.data),
+					ctypes.c_void_p(mask.ctypes.data),
+					ctypes.c_void_p(benefit.ctypes.data))
 		
-		t1 = time.time()
-		
-		#benefit = compute_num_coverable(roads,covered,mask,search_radius)
-		
-		
-		benefit_visited = numpy.zeros((nrows,ncols))#,dtype=numpy.int32
-		queue = collections.deque()
-		queue.appendleft((best_cell,0))
-		benefit_visited[best_cell]=1
-		while(queue):
-			(cell,y) = queue.pop()
-			for nbor_ben in util.getNeighbours(cell, mask):
-				if (y+1 < 2*search_radius+1 and benefit_visited[nbor_ben]==0):
-					queue.appendleft((nbor_ben,y+1))
-					benefit[nbor_ben] = compute_benefit_single_cell(roads, covered, mask, search_radius, nbor_ben[0], nbor_ben[1])
-					benefit_visited[nbor_ben]=1
-		
-		t2 = time.time()
-		
-		
-		print ("	recompute the benefit grid ", "{:.3f}".format(t2-t1), "seconds")
-		
-		##################################################################################################################
-		##################################################################################################################
-		##################################################################################################################
-		
+		#t2 = time.time()
+		#print ("	recompute the benefit grid ", "{:.3f}".format(t2-t1), "seconds")
+				
 		#save some intermediate modeled roads to show progress	
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
 			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
@@ -410,14 +409,8 @@ def computeNeighbours(road_neighbours, nrows, ncols, roads, mask):
 
 def computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius):
 	
-	'''
-	numpy.array(A<5, dtype=int)
-	'''
-	for i in range(nrows):
-		for j in range(ncols):
-			if (min_dist[i][j] <= search_radius and mask[i][j] == 1):
-				covered[i][j] = 1
-	return covered
+	a = numpy.array(min_dist <= search_radius,dtype=numpy.int32)
+	return numpy.multiply (a,mask)
 
 #returns an numpy array, spaced by separation,
 #based on the mask in data_layers

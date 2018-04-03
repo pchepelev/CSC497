@@ -7,7 +7,7 @@ import time
 
 import util
 lib = ctypes.cdll.LoadLibrary('code/bfs.so')
-bfs_full = lib.full_bfs
+full_bfs = lib.full_bfs
 
 #returns the total distances of the distance grid
 def getTotalDistance(distances):
@@ -55,42 +55,14 @@ def minDistForCells(roads, mask):
 	roads = numpy.array(roads,dtype=numpy.int32)
 	mask = numpy.array(mask,dtype=numpy.int32)
 	
-	bfs_full(ctypes.c_int(rows),ctypes.c_int(cols),
+	full_bfs(ctypes.c_int(rows),ctypes.c_int(cols),
 			  ctypes.c_void_p(mask.ctypes.data),
 			  ctypes.c_void_p(roads.ctypes.data),
 			  ctypes.c_void_p(dist_grid.ctypes.data))
 	
 	return dist_grid
-	
-	'''
-	a = roads.nonzero()
-	
-	i = a[0]
-	j = a[1]
-	
-	for i,x in enumerate(i):
-		queue.appendleft((int(x),int(j[i])))
-		distance_grid[x][j[i]] = 0
-	
-	
-	for i in range(rows):
-		for j in range(cols):
-			if (roads[i][j] == 1):
-				queue.appendleft((i,j))
-				distance_grid[i][j] = 0
-	
-	#while queue is not empty, pop cell from queue, queue all not visited neighbours
-	while(queue):
-		(x,y) = queue.pop()
-		cell = (x,y)
-		for neighbour in util.getNeighbours(cell, mask):
-			if distance_grid[neighbour]==-1:
-				queue.appendleft(neighbour)
-				distance_grid[neighbour]=distance_grid[cell]+1
-	'''
 
 #averages the distance grid by the number of cells in the mask
-#SHOULD I REMOVE ROAD CELLS FROM THE CALCULATIONS?
 def avgDistForArea(dist_grid, mask_grid):
 	cells_in_area = numpy.sum(mask_grid)
 	total_distance = getTotalDistance(dist_grid)
@@ -132,16 +104,3 @@ if __name__ == '__main__':
 	print("cost of road network = "+str(costOfRoadNetwork(network_grid)))
 	print("avg traversal distance from road for all cells in mask = "+str(avgDistForArea(bfs_grid,mask_grid)))
 	print("are all cells within the specified search radius from a road? "+str(allCellsWithinRadius(bfs_grid, mask_grid, radius,cellsize)))
-
-
-'''
-	each cell that is considered is within radius
-	each masked cell doesnt have a road on it
-
-cost of road network (for now, just number of road cells)
-minimum distance for a cell from a road
-
-Average distance statistic:
- - For each cell, compute its "natural distance": the minimum distance from that cell to a road
- - Average the natural distances of every cell
-'''
