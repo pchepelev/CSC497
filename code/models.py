@@ -13,6 +13,7 @@ lib = ctypes.cdll.LoadLibrary('code/bfs.so')
 compute_num_coverable_ij = lib.compute_num_coverable
 limited_bfs = lib.limited_bfs
 covered_bfs = lib.covered_bfs
+inaccessible_bfs = lib.inaccessible_bfs
 
 def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
 	
@@ -30,6 +31,16 @@ def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
 	return benefit
 	
 
+def ia_bfs (x,y,g1,g2):
+	rows, cols = g1.shape
+	grid = numpy.array(g1,dtype=numpy.int32)
+	mask = numpy.array(g2,dtype=numpy.int32)
+	inaccessible_bfs(ctypes.c_int(rows), ctypes.c_int(cols),
+					 ctypes.c_int(x), ctypes.c_int(y),
+					 ctypes.c_void_p(grid.ctypes.data),
+					 ctypes.c_void_p(mask.ctypes.data))
+	return mask
+	
 def compute_benefit_single_cell(roads, covered, mask, radius, i, j):
 	rows, cols = roads.shape
 	covered = numpy.array(covered,dtype=numpy.int32)
@@ -149,16 +160,17 @@ def scragglyAlgorithm(name, data_layers,search_radius):
 	return roads
 
 #greedy algorithm with 2 tiebreakers
-def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
+def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	print ("Running greedyAlgorithm on " + name)
 	
 	grid = util.ascToGrid(data_layers['mask'])
 	ncols = (int(grid[0][-1]))
 	nrows = (int(grid[1][-1]))
-	cellsize = float(grid[4][-1])	
+	cellsize = float(grid[4][-1])
 	grid = util.removeHeader(grid)
 	grid = util.changeToInt(grid)
 	mask = numpy.array(grid)
+	mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
 	
 	grid = util.ascToGrid(data_layers['roads'])
 	grid = util.removeHeader(grid)
@@ -167,6 +179,18 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	roads = numpy.multiply(mask,roads)
 	util.saveFile(roads, 'input_roads', data_layers)
 	
+	grid = util.ascToGrid(data_layers['veg'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	veg = numpy.array(grid)
+	
+	
+	for lyr in data_layers['inaccessible'].items():
+		grid = util.ascToGrid(lyr[1])
+		grid = util.removeHeader(grid)
+		grid = util.changeToInt(grid)
+		gridarray = numpy.array(grid)
+		mask = ia_bfs(access_point[0],access_point[1],gridarray,mask)
 	
 	
 	t1 = time.time()
@@ -181,10 +205,10 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	
 	t1 = time.time()
 	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
-	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
+	covered = computeCoveredGrid(min_dist_grid,search_radius)
+	covered = (numpy.maximum(covered,numpy.array(1-veg)))
 	t2 = time.time()
 	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
-	
 	
 	
 	t1 = time.time()
@@ -197,11 +221,12 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
 	t2 = time.time()
 	print("compute Neighbours of roads took ", "{:.3f}".format(t2-t1), "seconds")
-	
 	x=0
 	coveredCells = numpy.sum(covered)
 	cellsInMask = numpy.sum(mask)
+	
 	print (x, coveredCells, cellsInMask)
+	
 	while (coveredCells < cellsInMask):
 		#time.sleep(1)
 		x+=1
@@ -222,22 +247,6 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
 	
 	
-		'''
-		t1 = time.time()
-		best_set = set()
-		queue = collections.deque()
-		queue.appendleft((best_cell,0))
-		while(queue):
-			(cell,y) = queue.pop()
-			for nbor in util.getNeighbours(cell, mask):
-				if (y+1 < search_radius):
-					queue.appendleft((nbor,y+1))
-				if (covered[nbor] == 0):
-					best_set.add(nbor)
-		t2 = time.time()
-		print("	bfs from best cell took ", "{:.3f}".format(t2-t1), "seconds")
-		'''
-		
 		#t1 = time.time()
 		#set best_cell to be a road
 		roads[best_cell] = 1
@@ -252,21 +261,14 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 		#t2 = time.time()
 		#print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
 		
-		(BCi,BCj)=best_cell
-		#t1 = time.time()
-		'''
-		#recompute the covered cells grid
-		for cell in best_set:
-			covered[cell] = 1
-			coveredCells += 1
-		'''
 		
+		#t1 = time.time()
+		(BCi,BCj)=best_cell
 		coveredCells += covered_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols), 
 									ctypes.c_int(BCi), ctypes.c_int(BCj), 
 									ctypes.c_int(search_radius), 
 									ctypes.c_void_p(covered.ctypes.data), 
 									ctypes.c_void_p(mask.ctypes.data))
-		
 		#t2 = time.time()
 		#print ("	recompute the covered cells grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
@@ -287,100 +289,15 @@ def greedyAlgorithm2TB(name, data_layers,search_radius, save_period):
 				
 		#save some intermediate modeled roads to show progress	
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
-			util.saveFile(covered, 'intermediate_covered'+str(x), data_layers)
-			util.saveFile(benefit, 'intermediate_benefit'+str(x), data_layers)
-			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
+			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
+			util.saveFile(covered, 'intermediate_covered'+'%04d'%x, data_layers)
+			#util.saveFile(benefit, 'intermediate_benefit'+'%04d'%x, data_layers)
+			#util.saveFile(min_dist_grid, 'intermediate_tiebreak'+'%04d'%x, data_layers)
 
 		#print (roads)
 		end = time.time()
 		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 		
-	return roads
-
-#greedy algorithm with 1 tiebreaker
-def greedyAlgorithm1TB(name, data_layers,search_radius, save_period):
-	print ("Running greedyAlgorithm on " + name)
-	
-	grid = util.ascToGrid(data_layers['mask'])
-	ncols = (int(grid[0][-1]))
-	nrows = (int(grid[1][-1]))
-	cellsize = float(grid[4][-1])	
-	grid = util.removeHeader(grid)
-	#grid = util.fixFirstColRow(grid)
-	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)
-	
-	grid = util.ascToGrid(data_layers['roads'])
-	grid = util.removeHeader(grid)
-	grid = util.changeToInt(grid)
-	roads = numpy.array(grid)
-	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
-	
-	print("get minimum distance from roads...")
-	min_dist_grid = verifier.minDistForCells(roads, mask)
-	
-	print("init covered grid...")
-	covered = numpy.zeros((nrows,ncols))
-	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist_grid,search_radius)
-
-	print("compute Neighbours of roads...")
-	road_neighbours = set()
-	road_neighbours = computeNeighbours(road_neighbours, nrows, ncols, roads, mask)
-	
-	x=0
-	coveredCells = numpy.sum(covered)
-	cellsInMask = numpy.sum(mask)
-	print (x, coveredCells, cellsInMask)
-	while (coveredCells < cellsInMask):
-		x+=1
-		start = time.time()
-		
-		benefit = compute_num_coverable(roads,covered,mask,search_radius)
-		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
-		
-		(best_cell,tied_set) = tied_greater_than(road_neighbours,benefit)
-		if len(tied_set) > 1:
-			best_cell = tied_less_than(tied_set,min_dist_grid)[0]
-	
-		best_set = set()
-		queue = collections.deque()
-		queue.appendleft((best_cell,0))
-		while(queue):
-			(cell,y) = queue.pop()
-			for nbor in util.getNeighbours(cell, mask):
-				if (y+1 < search_radius):
-					queue.appendleft((nbor,y+1))
-				if (covered[nbor] == 0):
-					best_set.add(nbor)
-				
-		#set best_cell to be a road
-		roads[best_cell] = 1
-		
-		#get neighbours of best_cell, add them to the road_neighbours set, remove the best_cell
-		#from the road_neighbours set since it is a road, not a neighbour
-		new_neighbours = util.getNeighbours(best_cell, mask)
-		for nbor in new_neighbours:
-			if (roads[nbor] == 0):
-				road_neighbours.add(nbor)
-		road_neighbours.remove(best_cell)
-		
-		#recompute the covered cells grid
-		for cell in best_set:
-			covered[cell] = 1
-			coveredCells += 1
-		
-		#save some intermediate modeled roads to show progress	
-		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+str(x), data_layers)
-			util.saveFile(covered, 'intermediate_covered'+str(x), data_layers)
-			util.saveFile(benefit, 'intermediate_benefit'+str(x), data_layers)
-			util.saveFile(min_dist_grid, 'intermediate_tiebreak'+str(x), data_layers)
-
-		print (roads)
-		end = time.time()
-		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 	return roads
 
 def tied_greater_than(input_set, grid):
@@ -420,10 +337,10 @@ def computeNeighbours(road_neighbours, nrows, ncols, roads, mask):
 						road_neighbours.add(neighbour)
 	return road_neighbours
 
-def computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius):
+def computeCoveredGrid(min_dist,search_radius):
 	
 	a = numpy.array(min_dist <= search_radius,dtype=numpy.int32)
-	return numpy.multiply (a,mask)
+	return a
 
 #returns an numpy array, spaced by separation,
 #based on the mask in data_layers

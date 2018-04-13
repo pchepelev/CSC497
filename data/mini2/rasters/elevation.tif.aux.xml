@@ -6,7 +6,6 @@
     <MDI key="PyramidResamplingType">NEAREST</MDI>
   </Metadata>
   <PAMRasterBand band="1">
-    <Description>Band_1</Description>
     <Histograms>
       <HistItem>
         <HistMin>1023</HistMin>

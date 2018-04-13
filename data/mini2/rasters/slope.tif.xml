@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20180412</CreaDate><CreaTime>21230900</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.6\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\Reclassify" Date="20180412" Time="212309">Reclassify Slope_tif2 VALUE "0 30 0;30 57.918720 1;NODATA 0" "D:\my files\Documents\ArcGIS\csc497\mini2rasters\slope.tif" DATA</Process></lineage></DataProperties></Esri></metadata>

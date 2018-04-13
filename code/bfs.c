@@ -7,6 +7,99 @@ typedef struct{
 	int i,j;
 } GridIndex;
 
+void print_array(int rows, int cols, int grid[rows][cols]) {
+	int i,j;
+	for(i=0;i<rows;i++){
+		for(j=0;j<cols;j++){
+			printf("%d",grid[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+int inaccessible_bfs (int rows, int cols, int start_i, int start_j, int grid[rows][cols], int mask[rows][cols]) {
+	int i,j;
+	int count = 0;
+	int visited[rows][cols];
+	for(i=0;i<rows;i++)
+		for(j=0;j<cols;j++)
+			visited[i][j]=0;
+
+	
+	GridIndex queue[rows*cols];
+	GridIndex first_cell = {start_i, start_j};
+	int q_start,q_end = 0;
+	queue[0] = first_cell;
+	q_end++;
+	
+	while (q_start < q_end) {
+		GridIndex cell = queue[q_start];
+		q_start++;
+		
+		i = cell.i;
+		j = cell.j;
+		
+		
+		if (grid[i][j]==1)
+			continue;
+		
+		if (i+1 < rows) {
+			if (visited[i+1][j] == 0) {
+				if (grid[i+1][j] == 0) {
+					GridIndex next_cell = {i+1,j};
+					queue[q_end] = next_cell;
+					q_end++;
+					visited[i+1][j]=1;
+				}
+			}
+		}
+		
+		if (i-1 >= 0) {
+			if (visited[i-1][j] == 0) {
+				if (grid[i-1][j] == 0) {
+					GridIndex next_cell = {i-1,j};
+					queue[q_end] = next_cell;
+					q_end++;
+					visited[i-1][j] = 1;
+				}
+			}
+		}
+		
+		if (j+1 < cols) {
+			if (visited[i][j+1] == 0) {
+				if (grid[i][j+1] == 0) {
+					GridIndex next_cell = {i,j+1};
+					queue[q_end] = next_cell;
+					q_end++;
+					visited[i][j+1]=1;
+				}
+			}
+		}
+		
+		if (j-1 >= 0) {
+			if (visited[i][j-1] == 0) {
+				if (grid[i][j-1] == 0) {
+					GridIndex next_cell = {i,j-1};
+					queue[q_end] = next_cell;
+					q_end++;
+					visited[i][j-1]=1;
+				}
+			}
+		}
+		
+	}
+	
+	for(i=0;i<rows;i++){
+		for(j=0;j<cols;j++){
+			if(visited[i][j]==0){
+				mask[i][j]=0;
+			}
+		}
+	}
+	
+	return -1;
+}
+
 int covered_bfs (int rows, int cols, int start_i, int start_j, int radius, int covered[rows][cols], int mask[rows][cols]) {
 	int i,j;
 	int count = 0;
@@ -157,7 +250,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 				}
 			}
 		}
-		if (j+1 < rows){
+		if (j+1 < cols){
 			if (dist[i][j+1] < 0){
 				if (mask[i][j+1] == 1) {
 					GridIndex next_cell = {i,j+1};

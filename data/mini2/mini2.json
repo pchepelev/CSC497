@@ -1,9 +1,16 @@
 {
 	"area_name":"mini2",
-	"search_radius":4,
+	"search_radius":10,
+	"access_point_x":60,
+	"access_point_y":345,
 	"layers":{
 		"mask":"data/mini2/grids/mask.asc",
 		"elevation":"data/mini2/grids/elevation.asc",
-		"roads":"data/mini2/grids/roads.asc"
+		"roads":"data/mini2/grids/roads.asc",
+		"veg":"data/mini2/grids/veg.asc",
+		"inaccessible":{
+			"slope":"data/mini2/grids/slope.asc",
+			"waterbody":"data/mini2/grids/waterbody.asc"
+		}
 	}
 }
