@@ -6,7 +6,6 @@
     <MDI key="PyramidResamplingType">NEAREST</MDI>
   </Metadata>
   <PAMRasterBand band="1">
-    <Description>Band_1</Description>
     <Histograms>
       <HistItem>
         <HistMin>768</HistMin>
@@ -34,7 +33,7 @@
       <MDI key="STATISTICS_MINIMUM">768</MDI>
       <MDI key="STATISTICS_SKIPFACTORX">1</MDI>
       <MDI key="STATISTICS_SKIPFACTORY">1</MDI>
-      <MDI key="STATISTICS_STDDEV">19.114987450207</MDI>
+      <MDI key="STATISTICS_STDDEV">19.114987450208</MDI>
     </Metadata>
   </PAMRasterBand>
 </PAMDataset>

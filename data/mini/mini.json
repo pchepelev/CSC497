@@ -1,10 +1,15 @@
 {
 	"area_name":"mini",
-	"search_radius":4,
+	"access_point_x":0,
+	"access_point_y":0,
 	"layers":{
-		"mask":"data/mini/grids/waterbody.asc",
+		"mask":"data/mini/grids/mask.asc",
 		"elevation":"data/mini/grids/elevation.asc",
-		"forest_cover":"data/mini/grids/veg.asc",
-		"roads":"data/mini/grids/1cell_roads.asc"
+		"roads":"data/mini/grids/road.asc",
+		"veg":"data/mini/grids/veg.asc",
+		"inaccessible":{
+			"slope":"data/mini/grids/slope.asc",
+			"waterbody":"data/mini/grids/waterbody.asc"
+		}
 	}
 }

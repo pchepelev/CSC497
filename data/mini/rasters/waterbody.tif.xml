@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata xml:lang="en"><Esri><CreaDate>20180413</CreaDate><CreaTime>13065100</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.6\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\Reclassify" Date="20180413" Time="130651">Reclassify Feature_wate1 VALUE "13649.835979 1;NODATA 0" "D:\my files\Documents\ArcGIS\csc497\minirasters\waterbody.tif" DATA</Process></lineage></DataProperties></Esri></metadata>

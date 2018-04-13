@@ -1,2 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<metadata xml:lang="en"><Esri><CreaDate>20180312</CreaDate><CreaTime>02140400</CreaTime><ArcGISFormat>1.0</ArcGISFormat><SyncOnce>TRUE</SyncOnce><DataProperties><lineage><Process ToolSource="c:\program files (x86)\arcgis\desktop10.6\ArcToolbox\Toolboxes\Spatial Analyst Tools.tbx\RasterCalculator" Date="20180312" Time="021404">RasterCalculator Con(IsNull("watercourse.tif"),0,1) "D:\my files\Documents\ArcGIS\csc497\minirasters\watercourse_new.tif"</Process></lineage></DataProperties></Esri></metadata>

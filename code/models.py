@@ -41,6 +41,7 @@ def ia_bfs (x,y,g1,g2):
 					 ctypes.c_void_p(mask.ctypes.data))
 	return mask
 	
+
 def compute_benefit_single_cell(roads, covered, mask, radius, i, j):
 	rows, cols = roads.shape
 	covered = numpy.array(covered,dtype=numpy.int32)
@@ -170,7 +171,7 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.removeHeader(grid)
 	grid = util.changeToInt(grid)
 	mask = numpy.array(grid)
-	mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
+	
 	
 	grid = util.ascToGrid(data_layers['roads'])
 	grid = util.removeHeader(grid)
@@ -184,14 +185,14 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	veg = numpy.array(grid)
 	
-	
 	for lyr in data_layers['inaccessible'].items():
 		grid = util.ascToGrid(lyr[1])
 		grid = util.removeHeader(grid)
 		grid = util.changeToInt(grid)
 		gridarray = numpy.array(grid)
-		mask = ia_bfs(access_point[0],access_point[1],gridarray,mask)
-	
+		gridarray = numpy.array(1-gridarray)
+		mask = numpy.minimum(gridarray,mask)
+		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
 	
 	t1 = time.time()
 	min_dist_grid = verifier.minDistForCells(roads, mask)
@@ -205,11 +206,12 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	
 	t1 = time.time()
 	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
-	covered = computeCoveredGrid(min_dist_grid,search_radius)
-	covered = (numpy.maximum(covered,numpy.array(1-veg)))
+	covered = computeCoveredGrid(min_dist_grid,mask,search_radius)
+	covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
 	t2 = time.time()
 	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 	
+
 	
 	t1 = time.time()
 	benefit = compute_num_coverable(roads,covered,mask,search_radius)
@@ -226,9 +228,8 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	cellsInMask = numpy.sum(mask)
 	
 	print (x, coveredCells, cellsInMask)
-	
 	while (coveredCells < cellsInMask):
-		#time.sleep(1)
+		#time.sleep(0.1)
 		x+=1
 		start = time.time()
 		
@@ -295,9 +296,9 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 			#util.saveFile(min_dist_grid, 'intermediate_tiebreak'+'%04d'%x, data_layers)
 
 		#print (roads)
+		#print (covered)
 		end = time.time()
 		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
-		
 	return roads
 
 def tied_greater_than(input_set, grid):
@@ -337,10 +338,10 @@ def computeNeighbours(road_neighbours, nrows, ncols, roads, mask):
 						road_neighbours.add(neighbour)
 	return road_neighbours
 
-def computeCoveredGrid(min_dist,search_radius):
+def computeCoveredGrid(min_dist,mask,search_radius):
 	
 	a = numpy.array(min_dist <= search_radius,dtype=numpy.int32)
-	return a
+	return(a-(1-mask))
 
 #returns an numpy array, spaced by separation,
 #based on the mask in data_layers
