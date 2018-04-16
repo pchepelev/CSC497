@@ -29,7 +29,6 @@ def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
 				ctypes.c_void_p(benefit.ctypes.data))
 	
 	return benefit
-	
 
 def ia_bfs (x,y,g1,g2):
 	rows, cols = g1.shape
@@ -41,7 +40,6 @@ def ia_bfs (x,y,g1,g2):
 					 ctypes.c_void_p(mask.ctypes.data))
 	return mask
 	
-
 def compute_benefit_single_cell(roads, covered, mask, radius, i, j):
 	rows, cols = roads.shape
 	covered = numpy.array(covered,dtype=numpy.int32)
@@ -64,105 +62,9 @@ def compute_num_coverable(roads, covered, mask, radius):
 													  ctypes.c_void_p(covered.ctypes.data),
 													  ctypes.c_void_p(mask.ctypes.data))
 	return num_coverable
-
-def scragglyAlgorithmNew(name, data_layers,search_radius):
+	
+def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_period):
 	print ("Running scragglyAlgorithm on " + name)
-	
-	grid = util.ascToGrid(data_layers['mask'])
-	ncols = (int(grid[0][-1]))
-	nrows = (int(grid[1][-1]))
-	cellsize = float(grid[4][-1])	
-	grid = util.removeHeader(grid)
-	#grid = util.fixFirstColRow(grid)
-	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)
-	
-	grid = util.ascToGrid(data_layers['roads'])
-	grid = util.removeHeader(grid)
-	grid = util.changeToInt(grid)
-	roads = numpy.array(grid)
-	roads = numpy.multiply(mask,roads)
-	
-	
-	print("mindistforcells...")
-	min_dist = verifier.minDistForCells(roads, mask)
-	
-	covered = numpy.zeros((nrows,ncols))
-	print("init covered grid...")
-	covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius)
-	covered = covered*mask
-	
-
-	x = 0
-	cell = numpy.unravel_index(numpy.argmin(min_dist + covered*100000 + 100000*(1-mask)),min_dist.shape)
-	while numpy.max(min_dist) > search_radius:
-		x+=1
-		print("min:",min_dist[cell]," cell: ",cell,search_radius)
-		while min_dist[cell] > 0:
-			print("	min_dist[",cell,"]:",min_dist[cell])
-			best_num = 999999
-			neighbours = util.getNeighbours(cell, mask)
-			for neighbour in neighbours:
-				if min_dist[neighbour] < best_num:
-					best_cell = neighbour
-					best_num = min_dist[neighbour]
-			cell = best_cell
-			roads[cell] = 1
-		min_dist = verifier.minDistForCells(roads, mask)
-		cell = numpy.unravel_index(numpy.argmin(min_dist + covered*100000 + 100000*(1-mask)),min_dist.shape)
-		covered = computeCoveredGrid(covered,mask,nrows,ncols,min_dist,search_radius)
-		covered = covered*mask
-		util.saveFile(roads, 'roads'+str(x), data_layers)
-		
-		
-	return roads
-
-#heuristic model #1
-def scragglyAlgorithm(name, data_layers,search_radius):
-	print ("Running scragglyAlgorithm on " + name)
-	
-	grid = util.ascToGrid(data_layers['mask'])
-	ncols = (int(grid[0][-1]))
-	nrows = (int(grid[1][-1]))
-	cellsize = float(grid[4][-1])	
-	grid = util.removeHeader(grid)
-	#grid = util.fixFirstColRow(grid)
-	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)
-	
-	grid = util.ascToGrid(data_layers['roads'])
-	grid = util.removeHeader(grid)
-	grid = util.changeToInt(grid)
-	roads = numpy.array(grid)
-	roads = numpy.multiply(mask,roads)
-	
-	print("mindistforcells...")
-	min_dist = verifier.minDistForCells(roads, mask)
-	x = 0
-	cell = numpy.unravel_index(numpy.argmax(min_dist),min_dist.shape)
-	while numpy.max(min_dist) > search_radius:
-		x+=1
-		print("max:",min_dist[cell]," cell: ",cell,search_radius)
-		while min_dist[cell] > 0:
-			print("	min_dist[",cell,"]:",min_dist[cell])
-			best_num = 999999
-			neighbours = util.getNeighbours(cell, mask)
-			for neighbour in neighbours:
-				if min_dist[neighbour] < best_num:
-					best_cell = neighbour
-					best_num = min_dist[neighbour]
-			cell = best_cell
-			roads[cell] = 1
-		min_dist = verifier.minDistForCells(roads, mask)
-		cell = numpy.unravel_index(numpy.argmax(min_dist),min_dist.shape)
-		util.saveFile(roads, 'roads'+str(x), data_layers)
-		
-		
-	return roads
-
-#greedy algorithm with 2 tiebreakers
-def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
-	print ("Running greedyAlgorithm on " + name)
 	
 	grid = util.ascToGrid(data_layers['mask'])
 	ncols = (int(grid[0][-1]))
@@ -172,6 +74,14 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	mask = numpy.array(grid)
 	
+	for lyr in data_layers['inaccessible'].items():
+		grid = util.ascToGrid(lyr[1])
+		grid = util.removeHeader(grid)
+		grid = util.changeToInt(grid)
+		gridarray = numpy.array(grid)
+		gridarray = numpy.array(1-gridarray)
+		mask = numpy.minimum(gridarray,mask)
+		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
 	
 	grid = util.ascToGrid(data_layers['roads'])
 	grid = util.removeHeader(grid)
@@ -185,6 +95,49 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	veg = numpy.array(grid)
 	
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	mdn = numpy.multiply(veg,min_dist)
+	
+	print("init covered grid...")
+	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
+	covered = computeCoveredGrid(min_dist,mask,search_radius)
+	covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+	
+
+	cell = numpy.unravel_index(numpy.argmin(mdn + covered*100000 + 100000*(1-mask)),mdn.shape)
+	while numpy.max(mdn) > search_radius:
+		print("min:",min_dist[cell]," cell: ",cell,search_radius)
+		while min_dist[cell] > 0:
+			print("	min_dist[",cell,"]:",min_dist[cell])
+			best_num = 999999
+			neighbours = util.getNeighbours(cell, mask)
+			for neighbour in neighbours:
+				if min_dist[neighbour] < best_num:
+					best_cell = neighbour
+					best_num = min_dist[neighbour]
+			cell = best_cell
+			roads[cell] = 1
+		min_dist = verifier.minDistForCells(roads, mask)
+		mdn = numpy.multiply(veg,min_dist)
+		cell = numpy.unravel_index(numpy.argmin(mdn + covered*100000 + 100000*(1-mask)),mdn.shape)
+		covered = computeCoveredGrid(min_dist,mask,search_radius)
+		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+	
+	return roads
+
+def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period):
+	print ("Running scragglyAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
 	for lyr in data_layers['inaccessible'].items():
 		grid = util.ascToGrid(lyr[1])
 		grid = util.removeHeader(grid)
@@ -193,6 +146,74 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		gridarray = numpy.array(1-gridarray)
 		mask = numpy.minimum(gridarray,mask)
 		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	util.saveFile(roads, 'input_roads', data_layers)
+	
+	grid = util.ascToGrid(data_layers['veg'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	veg = numpy.array(grid)
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	mdn = numpy.multiply(veg,min_dist)
+	
+	cell = numpy.unravel_index(numpy.argmax(mdn),mdn.shape)
+	while numpy.max(mdn) > search_radius:
+		print("max:",min_dist[cell]," cell: ",cell,search_radius)
+		while min_dist[cell] > 0:
+			print("	min_dist[",cell,"]:",min_dist[cell])
+			best_num = 999999
+			neighbours = util.getNeighbours(cell, mask)
+			for neighbour in neighbours:
+				if min_dist[neighbour] < best_num:
+					best_cell = neighbour
+					best_num = min_dist[neighbour]
+			cell = best_cell
+			roads[cell] = 1
+			
+		min_dist = verifier.minDistForCells(roads, mask)
+		mdn = numpy.multiply(veg,min_dist)
+		cell = numpy.unravel_index(numpy.argmax(mdn),mdn.shape)
+		
+	return roads
+
+def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
+	print ("Running greedyAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	for lyr in data_layers['inaccessible'].items():
+		grid = util.ascToGrid(lyr[1])
+		grid = util.removeHeader(grid)
+		grid = util.changeToInt(grid)
+		gridarray = numpy.array(grid)
+		gridarray = numpy.array(1-gridarray)
+		mask = numpy.minimum(gridarray,mask)
+		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	util.saveFile(roads, 'input_roads', data_layers)
+	
+	grid = util.ascToGrid(data_layers['veg'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	veg = numpy.array(grid)
 	
 	t1 = time.time()
 	min_dist_grid = verifier.minDistForCells(roads, mask)

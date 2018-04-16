@@ -5,6 +5,7 @@ import models
 import util
 
 if __name__ == '__main__':
+	
 	if len(sys.argv) < 4:
 		print('Usage: %s <config file (JSON)> <search radius> <How often to save intermediate grids (0: don\'t save)>'%sys.argv[0])
 		sys.exit()
@@ -22,6 +23,6 @@ if __name__ == '__main__':
 	access_point = (int(json_dict.get('access_point_y')),int(json_dict.get('access_point_x')))
 
 	#get grid file
-	roads = models.greedyAlgorithm(name, layers,search_radius,access_point, save_period)
+	roads = models.scragglyAlgorithmNew(name, layers,search_radius,access_point, save_period)
 	print("model created. saving file...")
 	util.saveFile(roads, 'modeled_road', layers)
