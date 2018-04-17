@@ -11,10 +11,114 @@ void print_array(int rows, int cols, int grid[rows][cols]) {
 	int i,j;
 	for(i=0;i<rows;i++){
 		for(j=0;j<cols;j++){
-			printf("%d",grid[i][j]);
+			printf("%d\t",grid[i][j]);
 		}
 		printf("\n");
 	}
+}
+
+int find_path_length (int rows, int cols, int start_i, int start_j, int mask[rows][cols],int neighbours[rows][cols],int roads[rows][cols]) {
+	
+	int i,j;
+	
+	
+	int dist[rows][cols];
+	int prev[rows][cols];
+	for (i = 0; i < rows; i++){
+		for (j = 0; j < cols; j++){
+			dist[i][j] = -1;
+			prev[i][j] = -1;
+		}
+	}
+	
+	GridIndex queue[rows*cols];
+	int queue_start = 0;
+	int queue_end = 0;
+	
+	GridIndex first_cell = {start_i, start_j};
+	queue[0] = first_cell;
+	queue_end++;
+	dist[start_i][start_j] = 0;
+	
+	int cur;
+	while(queue_start < queue_end){
+		GridIndex cell = queue[queue_start];
+		queue_start++;
+		i = cell.i;
+		j = cell.j;
+		
+		if(neighbours[i][j]==1) {
+			
+			int x,y,prev_idx;
+			x=i;
+			y=j;
+			
+			//printf("%d %d\n",x,y);
+			roads[x][y] = 1;
+			prev_idx = prev[x][y];
+			
+			while (prev_idx >= 0) {
+				x = prev_idx / cols;
+				y = prev_idx % cols;
+				
+				//printf("%d %d\n",x,y);
+				roads[x][y] = 1;
+				prev_idx = prev[x][y];
+			}
+			
+			return -22;
+		}
+		
+		if (!mask[i][j]) //If mask = 0, the cell is invalid
+			continue;
+		
+		if (i+1 < rows){
+			if (mask[i+1][j] == 1) {
+				if (dist[i+1][j]==-1) {
+					GridIndex next_cell = {i+1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i+1][j] = dist[i][j] + 1;
+					prev[i+1][j] = i*cols+j;
+				}
+			}
+		}
+		if (i-1 >= 0){
+			if (mask[i-1][j] == 1) {
+				if (dist[i-1][j]==-1) {
+					GridIndex next_cell = {i-1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i-1][j] = dist[i][j] + 1;
+					prev[i-1][j] = i*cols+j;
+				}
+			}
+		}
+		if (j+1 < cols){
+			if (mask[i][j+1] == 1) {
+				if (dist[i][j+1]==-1) {
+					GridIndex next_cell = {i,j+1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j+1] = dist[i][j] + 1;
+					prev[i][j+1] = i*cols+j;
+				}
+			}
+		}
+		if (j-1 >= 0){
+			if (mask[i][j-1] == 1) {
+				if (dist[i][j-1]==-1) {
+					GridIndex next_cell = {i,j-1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j-1] = dist[i][j] + 1;
+					prev[i][j-1] = i*cols+j;
+				}
+			}
+		}
+	}
+	
+	return -9999;
 }
 
 int inaccessible_bfs (int rows, int cols, int start_i, int start_j, int grid[rows][cols], int mask[rows][cols]) {

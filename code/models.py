@@ -4,6 +4,7 @@ import time
 import ctypes
 import os
 import sys
+import random
 
 import util
 import verifier
@@ -14,6 +15,19 @@ compute_num_coverable_ij = lib.compute_num_coverable
 limited_bfs = lib.limited_bfs
 covered_bfs = lib.covered_bfs
 inaccessible_bfs = lib.inaccessible_bfs
+find_path_length = lib.find_path_length
+
+def bfs_path(start,mask,min_dist,roads):
+	rows,cols=mask.shape
+	start_i,start_j=start
+	neighbours = numpy.array(min_dist==1, dtype=numpy.int32)
+	roads = numpy.array(roads, dtype=numpy.int32)
+	find_path_length(ctypes.c_int(rows), ctypes.c_int(cols), 
+					 ctypes.c_int(start_i), ctypes.c_int(start_j), 
+					 ctypes.c_void_p(mask.ctypes.data),
+					 ctypes.c_void_p(neighbours.ctypes.data),
+					 ctypes.c_void_p(roads.ctypes.data))
+	return roads
 
 def bfs_limited(nrows, ncols, BCi, BCj, search_radius, covered, mask, benefit):
 	
@@ -62,6 +76,184 @@ def compute_num_coverable(roads, covered, mask, radius):
 													  ctypes.c_void_p(covered.ctypes.data),
 													  ctypes.c_void_p(mask.ctypes.data))
 	return num_coverable
+	
+def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
+	print ("Running randomAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	for lyr in data_layers['inaccessible'].items():
+		grid = util.ascToGrid(lyr[1])
+		grid = util.removeHeader(grid)
+		grid = util.changeToInt(grid)
+		gridarray = numpy.array(grid)
+		gridarray = numpy.array(1-gridarray)
+		mask = numpy.minimum(gridarray,mask)
+		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	util.saveFile(roads, 'input_roads', data_layers)
+	
+	grid = util.ascToGrid(data_layers['veg'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	veg = numpy.array(grid)
+	
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	
+	print("init covered grid...")
+	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
+	covered = computeCoveredGrid(min_dist,mask,search_radius)
+	covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+	
+
+	coveredCells = numpy.sum(covered)
+	cellsInMask = numpy.sum(mask)
+	count=0
+	print (count, coveredCells, cellsInMask)
+	while(coveredCells < cellsInMask):
+	
+		start = time.time()
+		
+		t1 = time.time()
+		covered_with_mask=numpy.array(covered+(1-mask))
+		uncovered_indices = numpy.where(covered_with_mask==0)
+		uncovered_cells=[]
+		for i,x in enumerate(uncovered_indices[0]):
+			uncovered_cells.append((uncovered_indices[0][i],uncovered_indices[1][i]))
+		t2 = time.time()
+		print("	get uncovered cells took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		traversal_list = []
+		random_choice = random.choice(uncovered_cells)
+		uncovered_cells.remove(random_choice)
+		t2 = time.time()
+		print("	randomly choose cell took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		roads = bfs_path(random_choice,mask,min_dist,roads)
+		t2 = time.time()
+		print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		min_dist = verifier.minDistForCells(roads, mask)
+		t2 = time.time()
+		print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		covered = computeCoveredGrid(min_dist,mask,search_radius)
+		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+		coveredCells = numpy.sum(covered)
+		t2 = time.time()
+		print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		end = time.time()
+		count+=1
+		print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		
+	return roads
+	
+def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
+	print ("Running randomAlgorithm on " + name)
+	
+	grid = util.ascToGrid(data_layers['mask'])
+	ncols = (int(grid[0][-1]))
+	nrows = (int(grid[1][-1]))
+	cellsize = float(grid[4][-1])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	mask = numpy.array(grid)
+	
+	for lyr in data_layers['inaccessible'].items():
+		grid = util.ascToGrid(lyr[1])
+		grid = util.removeHeader(grid)
+		grid = util.changeToInt(grid)
+		gridarray = numpy.array(grid)
+		gridarray = numpy.array(1-gridarray)
+		mask = numpy.minimum(gridarray,mask)
+		mask = ia_bfs(access_point[0],access_point[1],numpy.array(1-mask),mask)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
+	util.saveFile(roads, 'input_roads', data_layers)
+	
+	grid = util.ascToGrid(data_layers['veg'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	veg = numpy.array(grid)
+	
+	
+	print("mindistforcells...")
+	min_dist = verifier.minDistForCells(roads, mask)
+	
+	print("init covered grid...")
+	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
+	covered = computeCoveredGrid(min_dist,mask,search_radius)
+	covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+	
+
+	coveredCells = numpy.sum(covered)
+	cellsInMask = numpy.sum(mask)
+	count=0
+	print (count, coveredCells, cellsInMask)
+	while(coveredCells < cellsInMask):
+	
+		start = time.time()
+		
+		t1 = time.time()
+		covered_with_mask=numpy.array(covered+(1-mask))
+		uncovered_indices = numpy.where(covered_with_mask==0)
+		uncovered_cells=[]
+		for i,x in enumerate(uncovered_indices[0]):
+			uncovered_cells.append((uncovered_indices[0][i],uncovered_indices[1][i]))
+		t2 = time.time()
+		print("	get uncovered cells took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		traversal_list = []
+		random_choice = random.choice(uncovered_cells)
+		uncovered_cells.remove(random_choice)
+		t2 = time.time()
+		print("	randomly choose cell took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		roads = bfs_path(random_choice,mask,min_dist,roads)
+		t2 = time.time()
+		print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		min_dist = verifier.minDistForCells(roads, mask)
+		t2 = time.time()
+		print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		t1 = time.time()
+		covered = computeCoveredGrid(min_dist,mask,search_radius)
+		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+		coveredCells = numpy.sum(covered)
+		t2 = time.time()
+		print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
+		
+		end = time.time()
+		count+=1
+		print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		
+	return roads
 	
 def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_period):
 	print ("Running scragglyAlgorithm on " + name)

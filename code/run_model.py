@@ -23,6 +23,6 @@ if __name__ == '__main__':
 	access_point = (int(json_dict.get('access_point_y')),int(json_dict.get('access_point_x')))
 
 	#get grid file
-	roads = models.scragglyAlgorithmNew(name, layers,search_radius,access_point, save_period)
+	roads = models.randomAlgorithm(name, layers,search_radius,access_point, save_period)
 	print("model created. saving file...")
 	util.saveFile(roads, 'modeled_road', layers)
