@@ -9,6 +9,22 @@ import util
 import models
 lib = ctypes.cdll.LoadLibrary('code/bfs.so')
 full_bfs = lib.full_bfs
+bfs_along_roads = lib.bfs_along_roads
+
+def max_dist_from_input(mask, input, roads,data_layers):
+	rows,cols = roads.shape
+	dist = numpy.zeros((rows,cols),dtype=numpy.int32)-1
+	
+	mask = numpy.array(mask,dtype=numpy.int32)
+	input = numpy.array(input,dtype=numpy.int32)
+	roads = numpy.array(roads,dtype=numpy.int32)
+	bfs_along_roads (ctypes.c_int(rows),ctypes.c_int(cols),
+					 ctypes.c_void_p(mask.ctypes.data), 
+					 ctypes.c_void_p(input.ctypes.data), 
+					 ctypes.c_void_p(roads.ctypes.data), 
+					 ctypes.c_void_p(dist.ctypes.data))
+	util.saveFile(dist,'bfs_along_roads',data_layers)
+	return numpy.amax(dist)
 
 #returns the total distances of the distance grid
 def getTotalDistance(distances):
@@ -115,11 +131,18 @@ if __name__ == '__main__':
 	grid = util.removeHeader(grid)
 	grid = util.changeToInt(grid)
 	network_grid = numpy.array(grid)
+	
+	grid = util.ascToGrid(data_layers['roads'])
+	grid = util.removeHeader(grid)
+	grid = util.changeToInt(grid)
+	roads = numpy.array(grid)
+	roads = numpy.multiply(mask,roads)
 
 	bfs_grid = minDistForCells(network_grid, mask)
 	util.saveFile(bfs_grid, 'bfs', data_layers)
 	
 	print("are there roads on the mask? "+str(roadsOnMask(network_grid, mask)))
+	print("are all cells within the specified search radius from a road? "+str(allCellsWithinRadius(bfs_grid, mask_no_veg, search_radius,cellsize)))
 	print("cost of road network = "+str(costOfRoadNetwork(network_grid)))
 	print("avg traversal distance from road for all cells in mask = "+str(avgDistForArea(bfs_grid,mask_no_veg)))
-	print("are all cells within the specified search radius from a road? "+str(allCellsWithinRadius(bfs_grid, mask_no_veg, search_radius,cellsize)))
+	print("maximum distance from any cell on the generated roads to the input roads = "+str(max_dist_from_input(mask, roads, network_grid,data_layers)))

@@ -18,6 +18,20 @@ inaccessible_bfs = lib.inaccessible_bfs
 find_path = lib.find_path
 find_path_benefit = lib.find_path_benefit
 
+def run_algorithm(name, data_layers,search_radius,access_point, save_period, choice):
+	if choice == 0:
+		return greedyAlgorithm(name, data_layers,search_radius,access_point, save_period)
+	elif choice == 1:
+		return scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
+	elif choice == 2:
+		return scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_period)
+	elif choice == 3:
+		return randomAlgorithm(name, data_layers,search_radius,access_point, save_period)
+	elif choice == 4:
+		return choosyAlgorithm(name, data_layers,search_radius,access_point, save_period)
+	elif choice == 5:
+		return gridNetwork(name, data_layers,search_radius,access_point, save_period)
+
 def bfs_path_benefit(start, mask, min_dist, roads,benefit, radius,covered):
 	rows,cols=mask.shape
 	start_i,start_j=start
