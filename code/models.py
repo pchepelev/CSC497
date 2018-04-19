@@ -147,7 +147,7 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	
 		start = time.time()
 		
-		t1 = time.time()
+		#t1 = time.time()
 		a = numpy.where(benefit == numpy.max(benefit))
 		array_of_max_indices = numpy.transpose(a)
 		best_cell = (array_of_max_indices[0][0],array_of_max_indices[0][1])
@@ -158,25 +158,25 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 			(best_cell,tied_set) = tied_less_than(tied_set,min_dist)
 			if len(tied_set) > 1:
 				best_cell = tied_less_than(tied_set,dist_from_mask)[0]
-		t2 = time.time()
-		print("	choose best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	choose best cell took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		roads,benefit = bfs_path_benefit(best_cell, mask, min_dist, roads,benefit, search_radius,covered)
-		t2 = time.time()
-		print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		min_dist = verifier.minDistForCells(roads, mask)
-		t2 = time.time()
-		print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		covered = computeCoveredGrid(min_dist,mask,search_radius)
 		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
 		coveredCells = numpy.sum(covered)
-		t2 = time.time()
-		print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
 			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
@@ -249,38 +249,38 @@ def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	
 		start = time.time()
 		
-		t1 = time.time()
+		#t1 = time.time()
 		covered_with_mask=numpy.array(covered+(1-mask))
 		uncovered_indices = numpy.where(covered_with_mask==0)
 		uncovered_cells=[]
 		for i,x in enumerate(uncovered_indices[0]):
 			uncovered_cells.append((uncovered_indices[0][i],uncovered_indices[1][i]))
-		t2 = time.time()
-		print("	get uncovered cells took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	get uncovered cells took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		traversal_list = []
 		random_choice = random.choice(uncovered_cells)
 		uncovered_cells.remove(random_choice)
-		t2 = time.time()
-		print("	randomly choose cell took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	randomly choose cell took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		roads = bfs_path(random_choice,mask,min_dist,roads)
-		t2 = time.time()
-		print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	get path list and put cells on grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		min_dist = verifier.minDistForCells(roads, mask)
-		t2 = time.time()
-		print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		t1 = time.time()
+		#t1 = time.time()
 		covered = computeCoveredGrid(min_dist,mask,search_radius)
 		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
 		coveredCells = numpy.sum(covered)
-		t2 = time.time()
-		print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#t2 = time.time()
+		#print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		if (save_period > 0 and (x%save_period==0 or x == 1)):
 			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
@@ -530,6 +530,7 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	covered = numpy.zeros((nrows,ncols),dtype=numpy.int32)
 	covered = computeCoveredGrid(min_dist_grid,mask,search_radius)
 	covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+	
 	t2 = time.time()
 	print("init covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 	
@@ -554,24 +555,23 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		start = time.time()
 		
 		#t1 = time.time()
-		min_dist_grid = verifier.minDistForCells(1-covered-(1-mask), mask)
+		dist_from_uncovered = verifier.minDistForCells(1-covered-(1-mask), mask)
 		#t2 = time.time()
-		#print("	generate min_dist grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#print("	generate distance from uncovered cell grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		#t1 = time.time()
 		(best_cell,tied_set) = tied_greater_than(road_neighbours,benefit)
 		if len(tied_set) > 1:
-			(best_cell,tied_set) = tied_less_than(tied_set,min_dist_grid)
-		if len(tied_set) > 1:
-			best_cell = tied_less_than(tied_set,dist_from_mask)[0]
+			(best_cell,tied_set) = tied_less_than(tied_set,dist_from_uncovered)
+			if len(tied_set) > 1:
+				best_cell = tied_less_than(tied_set,dist_from_mask)[0]
 		#t2 = time.time()
 		#print("	find best cell took ", "{:.3f}".format(t2-t1), "seconds")
-	
 	
 		#t1 = time.time()
 		'''set best_cell to be a road'''
 		roads[best_cell] = 1
-		
+			
 		'''get neighbours of best_cell, add them to the road_neighbours set, remove the best_cell
 		   from the road_neighbours set since it is a road, not a neighbour'''
 		new_neighbours = util.getNeighbours(best_cell, mask)
@@ -581,9 +581,9 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		road_neighbours.remove(best_cell)
 		#t2 = time.time()
 		#print("	place road on grid, update neighbours took", "{:.3f}".format(t2-t1), "seconds")
-		
-		
+
 		#t1 = time.time()
+		covered = numpy.array(covered,dtype=numpy.int32)
 		(BCi,BCj)=best_cell
 		coveredCells += covered_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols), 
 									ctypes.c_int(BCi), ctypes.c_int(BCj), 
@@ -597,6 +597,7 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		covered = numpy.array(covered,dtype=numpy.int32)
 		mask = numpy.array(mask,dtype=numpy.int32)
 		benefit = numpy.array(benefit,dtype=numpy.int32)
+		
 		limited_bfs(ctypes.c_int(nrows), ctypes.c_int(ncols),
 					ctypes.c_int(BCi), ctypes.c_int(BCj),
 					ctypes.c_int(search_radius),
