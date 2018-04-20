@@ -484,15 +484,22 @@ int covered_bfs_list (int rows, int cols, int radius, int covered[rows][cols], i
 
 int compute_num_coverable( int rows, int cols, int start_i, int start_j, int radius, int covered[rows][cols], int mask[rows][cols] ){
 	
+	int i,j;
 	GridIndex queue[rows*cols];
 	int queue_start = 0;
 	int queue_end = 0;
 	
-	int dist[rows][cols];
-	int i,j;
-	for (i = 0; i < rows; i++)
-		for (j = 0; j < cols; j++)
+	//int dist[rows][cols];
+    int *dist[rows];
+    for (i=0; i<rows; i++)
+         dist[i] = (int *)malloc(cols * sizeof(int));
+	
+
+	for (i = 0; i < rows; i++){
+		for (j = 0; j < cols; j++){
 			dist[i][j] = -1;
+		}
+	}
 	
 	GridIndex first_cell = {start_i, start_j};
 	queue[0] = first_cell;
@@ -527,6 +534,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 				
 			}
 		}
+		
 		if (i-1 >= 0){
 			if (dist[i-1][j] < 0){
 				if (mask[i-1][j] == 1) {
@@ -537,6 +545,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 				}
 			}
 		}
+		
 		if (j+1 < cols){
 			if (dist[i][j+1] < 0){
 				if (mask[i][j+1] == 1) {
@@ -547,6 +556,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 				}
 			}
 		}
+		
 		if (j-1 >= 0){
 			if (dist[i][j-1] < 0){
 				if (mask[i][j-1] == 1) {
@@ -558,7 +568,15 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 			}
 		}
 		
+		
 	}
+	 
+	for (i = 0; i < rows; i++)
+	{
+		int* currentIntPtr = dist[i];
+		free(currentIntPtr);
+	}
+	
 	return total_found;
 	
 	
