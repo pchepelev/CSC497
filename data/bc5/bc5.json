@@ -1,0 +1,15 @@
+{
+	"area_name":"bc5",
+	"access_point_x":60,
+	"access_point_y":345,
+	"layers":{
+		"mask":"data/bc5/grids/mask.asc",
+		"elevation":"data/bc5/grids/elevation.asc",
+		"roads":"data/bc5/grids/roads.asc",
+		"veg":"data/bc5/grids/veg.asc",
+		"inaccessible":{
+			"slope":"data/bc5/grids/slope.asc",
+			"waterbody":"data/bc5/grids/waterbody.asc"
+		}
+	}
+}

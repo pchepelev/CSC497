@@ -121,7 +121,7 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	roads = numpy.array(grid)
 	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
+	#util.saveFile(roads, 'input_roads', data_layers)
 	
 	grid = util.ascToGrid(data_layers['veg'])
 	grid = util.removeHeader(grid)
@@ -230,7 +230,7 @@ def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	roads = numpy.array(grid)
 	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
+	#util.saveFile(roads, 'input_roads', data_layers)
 	
 	grid = util.ascToGrid(data_layers['veg'])
 	grid = util.removeHeader(grid)
@@ -334,7 +334,7 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 	grid = util.changeToInt(grid)
 	roads = numpy.array(grid)
 	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
+	#util.saveFile(roads, 'input_roads', data_layers)
 	
 	grid = util.ascToGrid(data_layers['veg'])
 	grid = util.removeHeader(grid)
@@ -434,7 +434,7 @@ def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
 	grid = util.changeToInt(grid)
 	roads = numpy.array(grid)
 	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
+	#util.saveFile(roads, 'input_roads', data_layers)
 	
 	grid = util.ascToGrid(data_layers['veg'])
 	grid = util.removeHeader(grid)
@@ -520,7 +520,7 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	grid = util.changeToInt(grid)
 	roads = numpy.array(grid)
 	roads = numpy.multiply(mask,roads)
-	util.saveFile(roads, 'input_roads', data_layers)
+	#util.saveFile(roads, 'input_roads', data_layers)
 	
 	grid = util.ascToGrid(data_layers['veg'])
 	grid = util.removeHeader(grid)

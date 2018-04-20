@@ -1,0 +1,15 @@
+{
+	"area_name":"bc4",
+	"access_point_x":2,
+	"access_point_y":2,
+	"layers":{
+		"mask":"data/bc4/bc22_mask.asc",
+		"elevation":"data/bc4/bc22_elevation.asc",
+		"roads":"data/bc4/bc22_roads.asc",
+		"veg":"data/bc4/bc22_veg.asc",
+		"inaccessible":{
+			"slope":"data/bc4/bc22_slope.asc",
+			"waterbody":"data/bc4/bc22_waterbody.asc"
+		}
+	}
+}
