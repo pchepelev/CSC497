@@ -17,6 +17,88 @@ void print_array(int rows, int cols, int grid[rows][cols]) {
 	}
 }
 
+int get_nearest_road_index (int rows, int cols, int start_i, int start_j, int mask[rows][cols],int roads[rows][cols], int index[2]) {
+	
+	int i,j;
+	
+	int dist[rows][cols];
+	for (i = 0; i < rows; i++){
+		for (j = 0; j < cols; j++){
+			dist[i][j] = -1;
+		}
+	}
+	
+	GridIndex queue[rows*cols];
+	int queue_start = 0;
+	int queue_end = 0;
+	
+	GridIndex first_cell = {start_i, start_j};
+	queue[0] = first_cell;
+	queue_end++;
+	dist[start_i][start_j] = 0;
+	
+	while(queue_start < queue_end){
+		GridIndex cell = queue[queue_start];
+		queue_start++;
+		i = cell.i;
+		j = cell.j;
+		
+		if(roads[i][j]==1) {
+			
+			index[0] = i;
+			index[1] = j;
+			return -22;
+			
+		}
+	
+		if (!mask[i][j]) //If mask = 0, the cell is invalid
+			continue;
+		
+		if (i+1 < rows){
+			if (mask[i+1][j] == 1) {
+				if (dist[i+1][j]==-1) {
+					GridIndex next_cell = {i+1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i+1][j] = dist[i][j] + 1;
+				}
+			}
+		}
+		if (i-1 >= 0){
+			if (mask[i-1][j] == 1) {
+				if (dist[i-1][j]==-1) {
+					GridIndex next_cell = {i-1,j};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i-1][j] = dist[i][j] + 1;
+				}
+			}
+		}
+		if (j+1 < cols){
+			if (mask[i][j+1] == 1) {
+				if (dist[i][j+1]==-1) {
+					GridIndex next_cell = {i,j+1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j+1] = dist[i][j] + 1;
+				}
+			}
+		}
+		if (j-1 >= 0){
+			if (mask[i][j-1] == 1) {
+				if (dist[i][j-1]==-1) {
+					GridIndex next_cell = {i,j-1};
+					queue[queue_end] = next_cell;
+					queue_end++;
+					dist[i][j-1] = dist[i][j] + 1;
+				}
+			}
+		}
+	}
+	
+	return -9999;
+}
+
 int find_path (int rows, int cols, int start_i, int start_j, int mask[rows][cols],int neighbours[rows][cols],int roads[rows][cols]) {
 	
 	int i,j;
@@ -51,7 +133,6 @@ int find_path (int rows, int cols, int start_i, int start_j, int mask[rows][cols
 			int x,y,prev_idx;
 			x=i;
 			y=j;
-			
 			roads[x][y] = 1;
 			prev_idx = prev[x][y];
 			
@@ -129,7 +210,8 @@ int inaccessible_bfs (int rows, int cols, int start_i, int start_j, int grid[row
 	
 	GridIndex queue[rows*cols];
 	GridIndex first_cell = {start_i, start_j};
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	queue[0] = first_cell;
 	q_end++;
 	
@@ -213,7 +295,8 @@ int covered_bfs (int rows, int cols, int start_i, int start_j, int radius, int c
 	
 	GridIndex queue[rows*cols];
 	GridIndex first_cell = {start_i, start_j};
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	queue[0] = first_cell;
 	q_end++;
 	
@@ -305,7 +388,8 @@ int covered_bfs_list (int rows, int cols, int radius, int covered[rows][cols], i
 			dist[i][j]=-1;
 	
 	GridIndex queue[rows*cols];
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	
 	for (i = 0; i < rows*cols; i++) {
 		if (list[i].i == -1)
@@ -492,7 +576,8 @@ int limited_bfs(int rows, int cols, int start_i, int start_j, int radius, int co
 	
 	GridIndex queue[rows*cols];
 	GridIndex first_cell = {start_i, start_j};
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	queue[0] = first_cell;
 	q_end++;
 	
@@ -573,7 +658,8 @@ int limited_bfs_list(int rows, int cols, int radius, int covered[rows][cols], in
 	
 	
 	GridIndex queue[rows*cols];
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	
 	for (i = 0; i < rows*cols; i++) {
 		if (list[i].i == -1)
@@ -655,7 +741,8 @@ int limited_bfs_list(int rows, int cols, int radius, int covered[rows][cols], in
 int full_bfs( int rows, int cols, int mask[rows][cols], int roads[rows][cols], int dist[rows][cols] ){
 	
 	GridIndex queue[rows*cols];
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	
 	int i,j;
 	for (i = 0; i < rows; i++) {
@@ -849,7 +936,8 @@ int bfs_along_roads (int rows, int cols, int mask[rows][cols], int input[rows][c
 	
 	int i,j;
 	GridIndex queue[rows*cols];
-	int q_start,q_end = 0;
+	int q_start = 0;
+	int q_end = 0;
 	
 	//print_array(rows,cols,dist);
 	

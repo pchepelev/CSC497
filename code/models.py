@@ -130,7 +130,6 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	t2 = time.time()
 	print("data preprocessing took ", "{:.3f}".format(t2-t1), "seconds")
 	
-	
 	t1 = time.time()
 	min_dist = verifier.minDistForCells(roads, mask)
 	t2 = time.time()
@@ -162,11 +161,6 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		start = time.time()
 		
 		#t1 = time.time()
-		dist_from_uncovered = verifier.minDistForCells(1-covered-(1-mask), mask)
-		#t2 = time.time()
-		#print("	generate distance from uncovered cell grid took ", "{:.3f}".format(t2-t1), "seconds")
-		
-		#t1 = time.time()
 		a = numpy.where(benefit == numpy.max(benefit))
 		array_of_max_indices = numpy.transpose(a)
 		best_cell = (array_of_max_indices[0][0],array_of_max_indices[0][1])
@@ -174,7 +168,7 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 			tied_set = set()
 			for cell in array_of_max_indices:
 				tied_set.add((cell[0],cell[1]))
-			(best_cell,tied_set) = tied_less_than(tied_set,dist_from_uncovered)
+			(best_cell,tied_set) = tied_less_than(tied_set,min_dist)
 			if len(tied_set) > 1:
 				best_cell = tied_less_than(tied_set,dist_from_mask)[0]
 		#t2 = time.time()
