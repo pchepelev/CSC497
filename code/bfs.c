@@ -489,11 +489,7 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 	int queue_start = 0;
 	int queue_end = 0;
 	
-	//int dist[rows][cols];
-    int *dist[rows];
-    for (i=0; i<rows; i++)
-         dist[i] = (int *)malloc(cols * sizeof(int));
-	
+	int dist[rows][cols];	
 
 	for (i = 0; i < rows; i++){
 		for (j = 0; j < cols; j++){
@@ -569,12 +565,6 @@ int compute_num_coverable( int rows, int cols, int start_i, int start_j, int rad
 		}
 		
 		
-	}
-	 
-	for (i = 0; i < rows; i++)
-	{
-		int* currentIntPtr = dist[i];
-		free(currentIntPtr);
 	}
 	
 	return total_found;
@@ -969,10 +959,6 @@ int bfs_along_roads (int rows, int cols, int mask[rows][cols], int input[rows][c
 			}
 		}
 	}
-	
-	//printf("\n");
-	
-	//print_array(rows,cols,dist);
 	
 	while (q_start<q_end) {
 		GridIndex cell = queue[q_start];
