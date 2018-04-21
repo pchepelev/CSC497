@@ -158,7 +158,7 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	print (count, coveredCells, cellsInMask)
 	while(coveredCells < cellsInMask):
 	
-		start = time.time()
+		#start = time.time()
 		
 		#t1 = time.time()
 		a = numpy.where(benefit == numpy.max(benefit))
@@ -191,13 +191,13 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		#t2 = time.time()
 		#print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
-			util.saveFile(covered, 'intermediate_covered'+'%04d'%x, data_layers)
+		if (save_period > 0 and (count%save_period==0 or count == 1)):
+			util.saveFile(roads, 'intermediate_roads'+'%04d'%count, data_layers)
+			util.saveFile(covered, 'intermediate_covered'+'%04d'%count, data_layers)
 		
-		end = time.time()
+		#end = time.time()
 		count+=1
-		print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		#print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 		
 	algEnd = time.time()
 	print("choosyAlgorithm took ", "{:.3f}".format(algEnd-algStart), "seconds")
@@ -260,7 +260,7 @@ def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	print (count, coveredCells, cellsInMask)
 	while(coveredCells < cellsInMask):
 	
-		start = time.time()
+		#start = time.time()
 		
 		#t1 = time.time()
 		covered_with_mask=numpy.array(covered+(1-mask))
@@ -295,13 +295,13 @@ def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
 		#t2 = time.time()
 		#print("	recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
-			util.saveFile(covered, 'intermediate_covered'+'%04d'%x, data_layers)
+		if (save_period > 0 and (count%save_period==0 or count == 1)):
+			util.saveFile(roads, 'intermediate_roads'+'%04d'%count, data_layers)
+			util.saveFile(covered, 'intermediate_covered'+'%04d'%count, data_layers)
 		
-		end = time.time()
+		#end = time.time()
 		count+=1
-		print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		#print (count, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 	
 	algEnd = time.time()
 	print("randomAlgorithm took ", "{:.3f}".format(algEnd-algStart), "seconds")
@@ -363,8 +363,8 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 	
 	count = 0
 	while numpy.max(mdn) > search_radius:
-		start = time.time()
-		print("   max:",min_dist[cell]," cell: ",cell,search_radius)
+		#start = time.time()
+		#print("   max:",min_dist[cell]," cell: ",cell,search_radius)
 		
 		#t1 = time.time()
 		while min_dist[cell] > 0:
@@ -395,12 +395,12 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 		#t2 = time.time()
 		#print(" recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
-			util.saveFile(covered, 'intermediate_covered'+'%04d'%x, data_layers)
+		if (save_period > 0 and (count%save_period==0 or count == 1)):
+			util.saveFile(roads, 'intermediate_roads'+'%04d'%count, data_layers)
+			util.saveFile(covered, 'intermediate_covered'+'%04d'%count, data_layers)
 		
-		end = time.time()
-		print (count, "{:.3f}".format(end-start), "seconds")
+		#end = time.time()
+		#print (count, "{:.3f}".format(end-start), "seconds")
 		count+=1
 	
 	algEnd = time.time()
@@ -456,8 +456,8 @@ def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
 	
 	count = 0
 	while numpy.max(mdn) > search_radius:
-		start = time.time()
-		print("   max:",min_dist[cell]," cell: ",cell,search_radius)
+		#start = time.time()
+		#print("   max:",min_dist[cell]," cell: ",cell,search_radius)
 		
 		#t1 = time.time()
 		while min_dist[cell] > 0:
@@ -482,11 +482,11 @@ def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
 		#t2 = time.time()
 		#print(" recompute mindistforcells and get best cell took ", "{:.3f}".format(t2-t1), "seconds")
 		
-		if (save_period > 0 and (x%save_period==0 or x == 1)):
-			util.saveFile(roads, 'intermediate_roads'+'%04d'%x, data_layers)
+		if (save_period > 0 and (count%save_period==0 or count == 1)):
+			util.saveFile(roads, 'intermediate_roads'+'%04d'%count, data_layers)
 		
-		end = time.time()
-		print (count, "{:.3f}".format(end-start), "seconds")
+		#end = time.time()
+		#print (count, "{:.3f}".format(end-start), "seconds")
 		count+=1
 		
 	algEnd = time.time()
@@ -565,7 +565,8 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	print (x, coveredCells, cellsInMask)
 	while (coveredCells < cellsInMask):
 		x+=1
-		start = time.time()
+		if x%250==0:
+			start = time.time()
 		
 		#t1 = time.time()
 		dist_from_uncovered = verifier.minDistForCells(1-covered-(1-mask), mask)
@@ -627,8 +628,10 @@ def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 			#util.saveFile(benefit, 'intermediate_benefit'+'%04d'%x, data_layers)
 			#util.saveFile(min_dist_grid, 'intermediate_tiebreak'+'%04d'%x, data_layers)
 
-		end = time.time()
-		print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
+		
+		if x%250==0:
+			end = time.time()	
+			print (x, coveredCells, cellsInMask, "{:.3f}".format(end-start), "seconds")
 
 	algEnd = time.time()
 	print("greedyAlgorithm took ", "{:.3f}".format(algEnd-algStart), "seconds")
