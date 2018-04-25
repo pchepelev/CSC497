@@ -29,8 +29,6 @@ def run_algorithm(name, data_layers,search_radius,access_point, save_period, cho
 		return randomAlgorithm(name, data_layers,search_radius,access_point, save_period)
 	elif choice == 4:
 		return choosyAlgorithm(name, data_layers,search_radius,access_point, save_period)
-	elif choice == 5:
-		return gridNetwork(name, data_layers,search_radius,access_point, save_period)
 
 def bfs_path_benefit(start, mask, min_dist, roads,benefit, radius,covered):
 	rows,cols=mask.shape
@@ -95,7 +93,7 @@ def compute_num_coverable(roads, covered, mask, radius):
 	return num_coverable
 
 def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
-	print ("Running choosyAlgorithm on " + name)
+	print ("Running AlgorithmC on " + name)
 	algStart = time.time()
 	
 	t1 = time.time()
@@ -204,7 +202,7 @@ def choosyAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	return roads
 
 def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
-	print ("Running randomAlgorithm on " + name)
+	print ("Running AlgorithmR on " + name)
 	algStart = time.time()
 	
 	t1 = time.time()
@@ -308,7 +306,7 @@ def randomAlgorithm(name, data_layers,search_radius,access_point, save_period):
 	return roads
 
 def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_period):
-	print ("Running scragglyAlgorithmNew on " + name)
+	print ("Running AlgorithmS2 on " + name)
 	algStart = time.time()
 	
 	t1 = time.time()
@@ -360,11 +358,13 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 	cell = numpy.unravel_index(numpy.argmin(mdn + covered*100000 + 100000*(1-mask)),mdn.shape)
 	t2 = time.time()
 	print("get cell with min mindist, not counting covered or masked cells took ", "{:.3f}".format(t2-t1), "seconds")
-	
+
 	count = 0
 	while numpy.max(mdn) > search_radius:
 		#start = time.time()
 		#print("   max:",min_dist[cell]," cell: ",cell,search_radius)
+		
+		roads[cell] = 1
 		
 		#t1 = time.time()
 		while min_dist[cell] > 0:
@@ -385,15 +385,15 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 		#t1 = time.time()
 		min_dist = verifier.minDistForCells(roads, mask)
 		mdn = numpy.multiply(veg,min_dist)
-		cell = numpy.unravel_index(numpy.argmin(mdn + covered*100000 + 100000*(1-mask)),mdn.shape)
 		#t2 = time.time()
-		#print(" recompute mindistforcells and get best cell took ", "{:.3f}".format(t2-t1), "seconds")
+		#print(" recompute mindistforcells took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		#t1 = time.time()
 		covered = computeCoveredGrid(min_dist,mask,search_radius)
 		covered = (numpy.maximum(covered,numpy.array((1-veg)-(1-mask))))
+		cell = numpy.unravel_index(numpy.argmin(mdn + covered*100000 + 100000*(1-mask)),mdn.shape)
 		#t2 = time.time()
-		#print(" recompute covered grid took ", "{:.3f}".format(t2-t1), "seconds")
+		#print(" recompute covered grid and get best cell took ", "{:.3f}".format(t2-t1), "seconds")
 		
 		if (save_period > 0 and (count%save_period==0 or count == 1)):
 			util.saveFile(roads, 'intermediate_roads'+'%04d'%count, data_layers)
@@ -408,7 +408,7 @@ def scragglyAlgorithmNew(name, data_layers,search_radius,access_point, save_peri
 	return roads
 
 def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period):
-	print ("Running scragglyAlgorithm on " + name)
+	print ("Running AlgorithmS1 on " + name)
 	algStart = time.time()
 	
 	t1 = time.time()
@@ -459,6 +459,8 @@ def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
 		#start = time.time()
 		#print("   max:",min_dist[cell]," cell: ",cell,search_radius)
 		
+		roads[cell] = 1
+		
 		#t1 = time.time()
 		while min_dist[cell] > 0:
 			#tt1 = time.time()
@@ -494,7 +496,7 @@ def scragglyAlgorithm(name, data_layers,search_radius,access_point, save_period)
 	return roads
 
 def greedyAlgorithm(name, data_layers,search_radius,access_point, save_period):
-	print ("Running greedyAlgorithm on " + name)
+	print ("Running AlgorithmG on " + name)
 	algStart = time.time()
 	
 	t1 = time.time()
@@ -678,43 +680,3 @@ def computeCoveredGrid(min_dist,mask,search_radius):
 	
 	a = numpy.array(min_dist <= search_radius,dtype=numpy.int32)
 	return(a-(1-mask))
-
-#returns an numpy array, spaced by separation,
-#based on the mask in data_layers
-def gridNetwork(name, data_layers, separation):
-	print('Running gridNetwork on ' + name)
-
-	grid = util.ascToGrid(data_layers['mask'])
-	ncols = (int(grid[0][-1]))
-	nrows = (int(grid[1][-1]))
-	cellsize = float(grid[4][-1])
-	cell_dist = int(separation/cellsize)
-	
-	grid = util.removeHeader(grid)
-	#grid = util.fixFirstColRow(grid)
-	grid = util.changeToInt(grid)
-	mask = numpy.array(grid)
-	
-	roads_list = util.zeros(ncols,nrows)
-	roads_list = genGrid(roads_list,cell_dist)
-	roads = numpy.array(roads_list)
-	
-	masked_roads = numpy.multiply(roads,mask)
-	
-	return(masked_roads)
-
-#returns numpy array of zeros with dimensions based on data_layers
-def dummyNetwork(name,data_layers):
-	print('Running dummyNetwork on ' + name)
-	grid = util.ascToGrid(data_layers['mask'])
-	ncols = (int(grid[0][-1]))
-	nrows = (int(grid[1][-1]))
-	return numpy.zeros((ncols,nrows))
-
-#returns a 2D list with 1s in a grid pattern (grid separation = sep)
-def genGrid (grid, sep):
-	for i in range(len(grid)):
-		for j in range(len(grid[0])):
-			if (i%sep==0 or j%sep==0):
-				grid[i][j]=1
-	return grid

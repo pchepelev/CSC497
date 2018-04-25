@@ -94,10 +94,6 @@ def roadsOnMask(data, mask):
 def costOfRoadNetwork(array):
 	return numpy.sum(array)
 
-def minDistForCellsC(rows,cols):
-	grid = min_dist_for_cells(ctypes.c_int(rows),ctypes.c_int(cols))
-	return grid
-
 #returns a grid that shows how far (BFS traversal) each cell is from a road
 def minDistForCells(roads, mask):
 	
