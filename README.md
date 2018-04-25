@@ -7,10 +7,15 @@ This runs the selected algorithm using the specified search radius and creates a
 
 #### Algorithm choices:
 0 - AlgorithmG
+
 1 - AlgorithmS1
+
 2 - AlgorithmS2
+
 3 - AlgorithmR
+
 4 - AlgorithmC
+
 
 ### Verify model
 python3 code/verify.py (config file (.json)) (input network (.asc)) (search radius)
